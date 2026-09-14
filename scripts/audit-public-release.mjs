@@ -5,6 +5,8 @@ const forbidden = [
   { label: "FLS branding or paths", pattern: /\b(?:FLS|Finger Lakes Stairs)\b/i },
   { label: "Wayfinder integration", pattern: /\bWayfinder\b/i },
   { label: "ClickUp integration", pattern: /\bClickUp\b/i },
+  { label: "private customer or product naming", pattern: /\b(?:Staircon|bSolid|bSuite|Rover|California Closets)\b/i },
+  { label: "private work portfolio label", pattern: /\bAndrew Work\b/i },
   { label: "local Windows profile path", pattern: /[A-Z]:\\Users\\Admin\\/i },
   { label: "local FLS drive path", pattern: /[A-Z]:\\FLS\\/i },
 ];

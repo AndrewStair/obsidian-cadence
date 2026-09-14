@@ -1,11 +1,10 @@
 {
   "id": "cadence-planner",
   "name": "Cadence",
-  "version": "0.15.0",
+  "version": "0.29.0",
   "minAppVersion": "1.4.0",
-  "description": "A workspace for working life: Home command centre, CRM, PRM, Planner with reminders, rich projects, Reports, and CSV import. Markdown source-of-truth, no server required.",
-  "author": "wesswart77",
-  "authorUrl": "https://github.com/wesswart77",
-  "fundingUrl": "https://www.buymeacoffee.com/wesswart77",
-  "isDesktopOnly": false
+  "description": "A local-first project-management workspace for Obsidian: projects, milestones, portfolios, relationships, planning, and reminders backed by Markdown.",
+  "author": "AndrewStair",
+  "authorUrl": "https://github.com/AndrewStair",
+  "isDesktopOnly": true
 }

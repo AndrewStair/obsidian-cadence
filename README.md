@@ -4,7 +4,7 @@ Cadence is a local-first operating system for planning and executing meaningful 
 
 This is the public fork maintained by [AndrewStair](https://github.com/AndrewStair), based on [wesswart77/obsidian-cadence](https://github.com/wesswart77/obsidian-cadence). It is intentionally general-purpose: no cloud account is required, and your vault remains the source of truth.
 
-> **Fork status:** the checked-in plugin is the stable upstream baseline. The public roadmap below describes the portable project-management direction being brought into this fork selectively, without private integrations, personal data, or machine-specific configuration.
+> **Public build:** Cadence `0.29.0` carries the portable planning and project-management implementation from this fork. Private integrations, personal data, and machine-specific configuration are removed before publication.
 
 ## Why Cadence
 
@@ -16,9 +16,9 @@ Most task tools isolate planning from the work that gives it context. Cadence ke
 - **Attention with context.** Inbox, Today, Calendar, and project views make it easier to choose the next useful action without losing the larger objective.
 - **Structured, not rigid.** Use a simple project when that is enough, and add relationships, portfolios, or sequencing only when they reduce real uncertainty.
 
-## Public Fork Direction
+## Public Fork Capabilities
 
-The public edition is being shaped around practical project management in Obsidian:
+The public edition centers practical project management in Obsidian:
 
 | Area | Intended capability |
 | --- | --- |
@@ -30,18 +30,7 @@ The public edition is being shaped around practical project management in Obsidi
 | **Relationships** | Explicit links such as dependency, enablement, tentative next, related work, and containment. |
 | **Local customization** | Per-vault paths, preferences, work-scope names, and visual choices stored locally rather than in the repository. |
 
-These capabilities will be documented as they land. A release only promises what its release notes and source actually include.
-
-## Current Baseline
-
-The current public baseline provides the original Cadence workspace, including:
-
-- Home, Inbox, Today, Calendar, Projects, and reporting surfaces.
-- Markdown-backed projects with milestones, tasks, status, priority, and project sections.
-- Capture and reminder workflows.
-- Optional CRM and partner-management modules from upstream Cadence.
-
-The fork preserves the upstream functionality while its portable planning model evolves in public.
+The fork also retains Home, Inbox, Today, Calendar, project boards, capture, reminders, and the optional upstream CRM and partner-management modules. A release only promises what its release notes and source actually include.
 
 ## Install
 
