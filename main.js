@@ -2787,6 +2787,31 @@ var require_main = __commonJS({
       "team",
       "settings"
     ]);
+    function defaultOperatingHours() {
+      return [
+        { enabled: false, start: 9, end: 17 },
+        { enabled: true, start: 9, end: 17 },
+        { enabled: true, start: 9, end: 17 },
+        { enabled: true, start: 9, end: 17 },
+        { enabled: true, start: 9, end: 17 },
+        { enabled: true, start: 9, end: 17 },
+        { enabled: false, start: 9, end: 17 }
+      ];
+    }
+    function normalizeOperatingHours(value) {
+      const defaults = defaultOperatingHours();
+      const source = Array.isArray(value) ? value : [];
+      return defaults.map((fallback, day) => {
+        const candidate = source[day] || {};
+        const start = Math.max(0, Math.min(23, Number(candidate.start)));
+        const end = Math.max(1, Math.min(24, Number(candidate.end)));
+        return {
+          enabled: candidate.enabled == null ? fallback.enabled : !!candidate.enabled,
+          start: Number.isFinite(start) ? start : fallback.start,
+          end: Number.isFinite(end) ? Math.max((Number.isFinite(start) ? start : fallback.start) + 1, end) : fallback.end
+        };
+      });
+    }
     var DEFAULT_SETTINGS = {
       dailyNoteFolder: "daily",
       dailyNoteFormat: "YYYY-MM-DD",
@@ -2807,6 +2832,8 @@ var require_main = __commonJS({
       roadmapWorkdayStart: 7,
       roadmapMonThuEnd: 17,
       roadmapFridayEnd: 11,
+      operatingHours: defaultOperatingHours(),
+      operatingHoursVersion: 1,
       roadmapActiveLimit: 3,
       roadmapMasterPlanPath: "09_Process Dev/Core Company Development/16 - Core Master Plan and Roadmap.md",
       roadmapRegistryPath: "09_Process Dev/Core Company Development/03 - Initiative Backlog.md",
@@ -6238,6 +6265,9 @@ ${this.previewEl.innerHTML}
       _workScopeLabel(scope) {
         const definition = WORK_SCOPES2.find((item) => item.id === scope);
         return definition ? definition.label : scope;
+      }
+      _operatingHours() {
+        return normalizeOperatingHours(this.plugin.settings.operatingHours);
       }
       _syncWorkScopeButtons() {
         const active = new Set(this._workScopes());
@@ -11520,6 +11550,7 @@ Projects will remain on the map.`)) return;
         root.addClass("cadence-home");
         this._homeResizeCapacity = this._homeProjectCapacityForWidth(root.clientWidth || window.innerWidth);
         const settings = this.plugin.settings;
+        const operatingHours = this._operatingHours();
         const crmEnabled = this._isModuleEnabled("crm");
         const prmEnabled = this._isModuleEnabled("prm");
         const plannerEnabled = this._isModuleEnabled("planner");
@@ -15671,11 +15702,9 @@ ${result.errors.join("\n")}`);
         return items;
       }
       async renderRoadmapCalendar(root) {
-        this._roadmapHeader(root, "Core Roadmap - Calendar", "Monday-Friday business calendar with continuous strategic spans and clear commitments");
+        this._roadmapHeader(root, "Core Roadmap - Calendar", "A shared operating-hours calendar for strategic work and commitments");
         const view = this.roadmapCalendarView || "month";
-        const startHour = Number(this.plugin.settings.roadmapWorkdayStart) || 7;
-        const monThuEnd = Number(this.plugin.settings.roadmapMonThuEnd) || 17;
-        const fridayEnd = Number(this.plugin.settings.roadmapFridayEnd) || 11;
+        const operatingHours = this._operatingHours();
         const controls = root.createDiv({ cls: "cad-roadmap-calendar-controls" });
         const nav = controls.createDiv({ cls: "cad-roadmap-calendar-nav" });
         const move = (amount) => {
@@ -15723,8 +15752,9 @@ ${result.errors.join("\n")}`);
         addFilter("completion", "STATE", [["open", "Open"], ["all", "Open + done"], ["done", "Completed"]]);
         const schedule = root.createDiv({ cls: "cad-roadmap-hours" });
         const hourLabel = (hour) => `${hour > 12 ? hour - 12 : hour || 12}:00 ${hour >= 12 ? "PM" : "AM"}`;
-        schedule.createEl("strong", { text: "Core Roadmap work hours" });
-        schedule.createSpan({ text: `Monday-Thursday ${hourLabel(startHour)}-${hourLabel(monThuEnd)} / Friday ${hourLabel(startHour)}-${hourLabel(fridayEnd)} / Saturday-Sunday closed` });
+        const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        schedule.createEl("strong", { text: "Operating hours" });
+        schedule.createSpan({ text: operatingHours.map((hours, day) => `${dayLabels[day]} ${hours.enabled ? `${hourLabel(hours.start)}-${hourLabel(hours.end)}` : "closed"}`).join(" / ") });
         let items = await this._roadmapCalendarItems();
         const strategicKinds = /* @__PURE__ */ new Set(["initiative", "phase"]);
         items = items.filter((item) => {
@@ -15734,22 +15764,23 @@ ${result.errors.join("\n")}`);
           if (filters.plane !== "all" && item.plane !== filters.plane) return false;
           return filters.completion === "all" || filters.completion === "done" === !!item.done;
         }).sort((a, b) => a.start - b.start || b.end - a.end || a.title.localeCompare(b.title));
-        const isWeekend = (date) => date.getDay() === 0 || date.getDay() === 6;
+        const hoursFor = (date) => operatingHours[date.getDay()];
+        const isClosedDay = (date) => !hoursFor(date).enabled;
         const isTimed = (item) => item.start.getHours() !== 0 || item.start.getMinutes() !== 0 || item.end.getHours() !== 0 || item.end.getMinutes() !== 0;
         const outsideHours = (item) => {
           if (!["task", "work-session"].includes(item.kind) || !isTimed(item)) return false;
-          if (isWeekend(item.start) || isWeekend(item.end) || !sameDay(item.start, item.end)) return true;
-          const endLimit = item.start.getDay() === 5 ? fridayEnd : monThuEnd;
+          if (isClosedDay(item.start) || isClosedDay(item.end) || !sameDay(item.start, item.end)) return true;
+          const hours = hoursFor(item.start);
           const startDecimal = item.start.getHours() + item.start.getMinutes() / 60;
           const endDecimal = item.end.getHours() + item.end.getMinutes() / 60;
-          return startDecimal < startHour || endDecimal > endLimit;
+          return startDecimal < hours.start || endDecimal > hours.end;
         };
-        const weekendPoints = items.filter((item) => sameDay(item.start, item.end) && isWeekend(item.start));
+        const closedDayPoints = items.filter((item) => sameDay(item.start, item.end) && isClosedDay(item.start));
         const outside = items.filter(outsideHours);
-        if (weekendPoints.length || outside.length) {
+        if (closedDayPoints.length || outside.length) {
           const warning = root.createDiv({ cls: "cad-roadmap-calendar-warning" });
           warning.createEl("strong", { text: "Needs rescheduling" });
-          warning.createSpan({ text: `${weekendPoints.length} item${weekendPoints.length === 1 ? "" : "s"} on a closed weekend; ${outside.length} timed item${outside.length === 1 ? "" : "s"} outside Core Roadmap work hours.` });
+          warning.createSpan({ text: `${closedDayPoints.length} item${closedDayPoints.length === 1 ? "" : "s"} on a closed day; ${outside.length} timed item${outside.length === 1 ? "" : "s"} outside operating hours.` });
         }
         const formatDate = (date) => date.toLocaleDateString(void 0, { month: "short", day: "numeric" });
         const formatTime = (date) => date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -15771,22 +15802,25 @@ ${result.errors.join("\n")}`);
           });
         };
         const renderBusinessWeek = (parent, monday, month = null) => {
-          const friday = addDays(monday, 4);
+          const weekEnd = addDays(monday, 6);
           const week = parent.createDiv({ cls: "cad-roadmap-business-week" });
+          week.style.setProperty("--roadmap-days", "7");
           const heads = week.createDiv({ cls: "cad-roadmap-week-heads" });
-          Array.from({ length: 5 }, (_, index) => addDays(monday, index)).forEach((day) => {
+          Array.from({ length: 7 }, (_, index) => addDays(monday, index)).forEach((day) => {
             const head = heads.createDiv({ cls: `cad-roadmap-week-head${sameDay(day, /* @__PURE__ */ new Date()) ? " is-today" : ""}${month != null && day.getMonth() !== month ? " is-outside-month" : ""}` });
             head.createEl("strong", { text: day.toLocaleDateString(void 0, { weekday: "short" }) });
             head.createSpan({ text: day.toLocaleDateString(void 0, { month: "short", day: "numeric" }) });
-            head.createEl("small", { text: `${hourLabel(startHour).replace(":00 ", " ")}-${hourLabel(day.getDay() === 5 ? fridayEnd : monThuEnd).replace(":00 ", " ")}` });
+            const hours = hoursFor(day);
+            head.createEl("small", { text: hours.enabled ? `${hourLabel(hours.start).replace(":00 ", " ")}-${hourLabel(hours.end).replace(":00 ", " ")}` : "CLOSED" });
           });
-          const overlapping = items.filter((item) => item.end >= monday && item.start < addDays(friday, 1) && !(sameDay(item.start, item.end) && isWeekend(item.start)));
+          const overlapping = items.filter((item) => item.end >= monday && item.start < addDays(weekEnd, 1) && !(sameDay(item.start, item.end) && isClosedDay(item.start)));
           const laneEnds = [];
           const placed = overlapping.map((item) => {
             const effectiveStart = item.start < monday ? monday : item.start;
-            const effectiveEnd = item.end > addDays(friday, 1) ? friday : item.end;
-            const startCol = Math.max(0, Math.min(4, effectiveStart.getDay() - 1));
-            const endCol = Math.max(startCol, Math.min(4, effectiveEnd.getDay() === 0 || effectiveEnd.getDay() === 6 ? 4 : effectiveEnd.getDay() - 1));
+            const effectiveEnd = item.end > addDays(weekEnd, 1) ? weekEnd : item.end;
+            const columnFor = (date) => (date.getDay() + 6) % 7;
+            const startCol = Math.max(0, Math.min(6, columnFor(effectiveStart)));
+            const endCol = Math.max(startCol, Math.min(6, columnFor(effectiveEnd)));
             let lane = laneEnds.findIndex((lastEnd) => lastEnd < startCol);
             if (lane < 0) {
               lane = laneEnds.length;
@@ -15813,11 +15847,11 @@ ${result.errors.join("\n")}`);
         root.createDiv({ cls: "cad-roadmap-calendar-title", text: titleText });
         const canvas = root.createDiv({ cls: `cad-roadmap-calendar-canvas is-${view}` });
         if (view === "day") {
-          if (isWeekend(this.roadmapAnchor)) canvas.createDiv({ cls: "cad-roadmap-calendar-closed", text: "Core Roadmap is closed on Saturday and Sunday. No work is scheduled here." });
+          if (isClosedDay(this.roadmapAnchor)) canvas.createDiv({ cls: "cad-roadmap-calendar-closed", text: "This day is closed in Operating hours. No work is scheduled here." });
           else renderAgendaRows(canvas, items.filter((item) => startOfDay(item.start) <= startOfDay(this.roadmapAnchor) && startOfDay(item.end) >= startOfDay(this.roadmapAnchor)));
         } else if (view === "agenda") {
           const agendaEnd = addDays(this.roadmapAnchor, 30);
-          renderAgendaRows(canvas, items.filter((item) => item.end >= this.roadmapAnchor && item.start < agendaEnd && !(sameDay(item.start, item.end) && isWeekend(item.start))));
+          renderAgendaRows(canvas, items.filter((item) => item.end >= this.roadmapAnchor && item.start < agendaEnd && !(sameDay(item.start, item.end) && isClosedDay(item.start))));
         } else if (view === "week") {
           renderBusinessWeek(canvas, weekDates(this.roadmapAnchor, 1)[0]);
         } else {
@@ -16461,7 +16495,7 @@ ${rows}
           days = [startOfDay(this.plannerAnchor)];
         } else if (view === "month") days = Array.from({ length: 42 }, (_, index) => addDays(monthGridStart, index));
         else if (view === "agenda") days = Array.from({ length: 30 }, (_, index) => addDays(startOfDay(this.plannerAnchor), index));
-        else days = weekDates(this.plannerAnchor, 1).slice(0, 5);
+        else days = weekDates(this.plannerAnchor, settings.weekStartsOn);
         const header = root.createDiv({ cls: "cad-pl-header" });
         const titleWrap = header.createDiv({ cls: "cad-pl-title-wrap" });
         titleWrap.createDiv({ cls: "cad-eyebrow", text: "CALENDAR" });
@@ -16873,14 +16907,16 @@ ${rows}
           new CadenceCalendarAssignModal(this.app, this, workItems, first, last, true).open();
         });
         const renderTimeGrid = () => {
-          const startHour = Math.max(0, Math.min(23, Number(settings.roadmapWorkdayStart) || 7));
-          const monThuEnd = Math.max(startHour + 1, Math.min(24, Number(settings.roadmapMonThuEnd) || 17));
-          const fridayEnd = Math.max(startHour + 1, Math.min(24, Number(settings.roadmapFridayEnd) || 11));
-          const endHour = Math.max(monThuEnd, fridayEnd);
+          const openDays = operatingHours.filter((hours) => hours.enabled);
+          const startHour = Math.min(...openDays.map((hours) => hours.start), 9);
+          const endHour = Math.max(...openDays.map((hours) => hours.end), startHour + 1);
           const gridMinutes = (endHour - startHour) * 60;
           const grid = calendar.createDiv({ cls: "cad-time-grid" });
           grid.style.setProperty("--cad-time-days", String(days.length));
-          const businessEndHour = (day) => day.getDay() === 5 ? fridayEnd : monThuEnd;
+          const businessEndHour = (day) => {
+            const hours = operatingHours[day.getDay()];
+            return hours.enabled ? hours.end : hours.start;
+          };
           const head = grid.createDiv({ cls: "cad-time-grid-head" });
           head.createDiv({ cls: "cad-time-gutter cad-time-gutter-head", text: "ALL DAY" });
           appendTimeGridDayHeaders2(head, days, today, startHour, businessEndHour);
@@ -16933,12 +16969,19 @@ ${rows}
               const line = column.createDiv({ cls: `cad-time-grid-line${quarter % 60 === 0 ? " is-hour" : ""}` });
               line.style.top = `${quarter * pixelsPerMinute}px`;
             }
-            const closeHour = businessEndHour(day);
+            const hours = operatingHours[day.getDay()];
+            const closeHour = hours.enabled ? hours.end : startHour;
+            if (hours.enabled && hours.start > startHour) {
+              const closed = column.createDiv({ cls: "cad-time-closed", text: "CLOSED" });
+              closed.style.top = "0px";
+              closed.style.height = `${(hours.start - startHour) * 60 * pixelsPerMinute}px`;
+              closed.title = `Opens at ${formatCalendarHour2(hours.start)}`;
+            }
             if (closeHour < endHour) {
               const closed = column.createDiv({ cls: "cad-time-closed", text: "CLOSED" });
               closed.style.top = `${(closeHour - startHour) * 60 * pixelsPerMinute}px`;
               closed.style.height = `${(endHour - closeHour) * 60 * pixelsPerMinute}px`;
-              closed.title = `Core closes at ${formatCalendarHour2(closeHour)} on Friday`;
+              closed.title = hours.enabled ? `Closes at ${formatCalendarHour2(closeHour)}` : "Closed";
             }
             column.addEventListener("dragover", (event) => {
               event.preventDefault();
@@ -17205,6 +17248,18 @@ ${rows}
           this.display();
         }));
         containerEl.createEl("h3", { text: "App" });
+        new obsidian.Setting(containerEl).setName("Open Cadence on Obsidian startup").setDesc("Auto-open the Cadence Home dashboard when Obsidian launches.").addToggle((t) => t.setValue(!!this.plugin.settings.openOnStartup).onChange(async (v) => {
+          this.plugin.settings.openOnStartup = v;
+          await this.plugin.saveSettings();
+        }));
+        new obsidian.Setting(containerEl).setName("Open Cadence in pop-out window").setDesc("Open Cadence in a detached Obsidian window when launched from startup, the ribbon, or a command.").addToggle((t) => t.setValue(!!this.plugin.settings.openInPopout).onChange(async (v) => {
+          this.plugin.settings.openInPopout = v;
+          await this.plugin.saveSettings();
+        }));
+        new obsidian.Setting(containerEl).setName("Remember Cadence pop-out position").setDesc("Restore the detached Cadence window size and position the next time it opens.").addToggle((t) => t.setValue(this.plugin.settings.rememberPopoutGeometry !== false).onChange(async (v) => {
+          this.plugin.settings.rememberPopoutGeometry = v;
+          await this.plugin.saveSettings();
+        }));
         new obsidian.Setting(containerEl).setName("Daily note folder").setDesc('Folder under which daily notes live, e.g. "daily" or "Journal/Daily".').addText((t) => t.setPlaceholder("daily").setValue(this.plugin.settings.dailyNoteFolder).onChange(async (v) => {
           this.plugin.settings.dailyNoteFolder = v;
           await this.plugin.saveSettings();
@@ -17228,36 +17283,54 @@ ${rows}
             });
           });
         });
-        new obsidian.Setting(containerEl).setName("Month starts on").setDesc("First day shown in Month view. The Core work week remains Monday-Friday.").addDropdown((d) => d.addOption("1", "Monday").addOption("0", "Sunday").setValue(String(this.plugin.settings.weekStartsOn)).onChange(async (v) => {
+        new obsidian.Setting(containerEl).setName("Month starts on").setDesc("First day shown in Month view.").addDropdown((d) => d.addOption("1", "Monday").addOption("0", "Sunday").setValue(String(this.plugin.settings.weekStartsOn)).onChange(async (v) => {
           this.plugin.settings.weekStartsOn = Number(v) === 0 ? 0 : 1;
           await this.plugin.saveSettings();
         }));
+        containerEl.createEl("h3", { text: "Scheduling" });
+        const hoursSetting = containerEl.createDiv({ cls: "cad-settings-operating-hours" });
+        const hoursInfo = hoursSetting.createDiv({ cls: "cad-settings-operating-hours-info" });
+        hoursInfo.createDiv({ cls: "setting-item-name", text: "Operating hours" });
+        hoursInfo.createDiv({ cls: "setting-item-description", text: "Set open days and daily availability for Calendar and Roadmap scheduling." });
+        const hoursGrid = hoursSetting.createDiv({ cls: "cad-settings-operating-hours-grid" });
+        const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const operatingHours = normalizeOperatingHours(this.plugin.settings.operatingHours);
+        this.plugin.settings.operatingHours = operatingHours;
+        const hourValue = (hour) => `${String(hour).padStart(2, "0")}:00`;
+        dayLabels.forEach((label, day) => {
+          const value = operatingHours[day];
+          const field = hoursGrid.createDiv({ cls: `cad-settings-operating-day${value.enabled ? " is-open" : ""}` });
+          const head = field.createEl("label", { cls: "cad-settings-operating-day-head" });
+          const enabled = head.createEl("input", { type: "checkbox" });
+          enabled.checked = value.enabled;
+          head.createSpan({ text: label });
+          const times = field.createDiv({ cls: "cad-settings-operating-day-times" });
+          const start = times.createEl("input", { type: "time", value: hourValue(value.start) });
+          const end = times.createEl("input", { type: "time", value: hourValue(value.end) });
+          const save = async () => {
+            const current = normalizeOperatingHours(this.plugin.settings.operatingHours);
+            const startHour = Math.max(0, Math.min(23, Number(start.value.slice(0, 2))));
+            const endHour = Math.max(startHour + 1, Math.min(24, Number(end.value.slice(0, 2)) || 24));
+            current[day] = { enabled: enabled.checked, start: startHour, end: endHour };
+            this.plugin.settings.operatingHours = current;
+            start.disabled = !enabled.checked;
+            end.disabled = !enabled.checked;
+            field.toggleClass("is-open", enabled.checked);
+            start.value = hourValue(startHour);
+            end.value = hourValue(endHour === 24 ? 0 : endHour);
+            await this.plugin.saveSettings();
+          };
+          start.disabled = !value.enabled;
+          end.disabled = !value.enabled;
+          enabled.addEventListener("change", save);
+          start.addEventListener("change", save);
+          end.addEventListener("change", save);
+        });
         containerEl.createEl("h3", { text: "Core Roadmap" });
         new obsidian.Setting(containerEl).setName("Active initiative limit").setDesc("Cadence warns before deliberately exceeding this company-development capacity.").addText((text) => text.setValue(String(this.plugin.settings.roadmapActiveLimit || 3)).onChange(async (value) => {
           this.plugin.settings.roadmapActiveLimit = Math.max(1, Number(value) || 3);
           await this.plugin.saveSettings();
         }));
-        const hoursSetting = containerEl.createDiv({ cls: "cad-settings-roadmap-hours" });
-        const hoursInfo = hoursSetting.createDiv({ cls: "cad-settings-roadmap-hours-info" });
-        hoursInfo.createDiv({ cls: "setting-item-name", text: "Core operating hours" });
-        hoursInfo.createDiv({ cls: "setting-item-description", text: "Shared by Planner and Roadmap. Saturday and Sunday remain closed." });
-        const hoursControls = hoursSetting.createDiv({ cls: "cad-settings-roadmap-hours-controls" });
-        const addHourControl = (label, settingKey, fallback, maximum) => {
-          const field = hoursControls.createEl("label", { cls: "cad-settings-roadmap-hour" });
-          field.createSpan({ text: label });
-          const input = field.createEl("input", { type: "number", value: String(this.plugin.settings[settingKey] ?? fallback) });
-          input.min = "0";
-          input.max = String(maximum);
-          input.step = "1";
-          input.addEventListener("change", async () => {
-            this.plugin.settings[settingKey] = Math.max(0, Math.min(maximum, Number(input.value) || fallback));
-            input.value = String(this.plugin.settings[settingKey]);
-            await this.plugin.saveSettings();
-          });
-        };
-        addHourControl("Start", "roadmapWorkdayStart", 7, 23);
-        addHourControl("Mon-Thu end", "roadmapMonThuEnd", 17, 24);
-        addHourControl("Friday end", "roadmapFridayEnd", 11, 24);
         [
           ["roadmapMasterPlanPath", "Master plan path"],
           ["roadmapRegistryPath", "Initiative Registry path"],
@@ -17270,18 +17343,6 @@ ${rows}
         })));
         new obsidian.Setting(containerEl).setName("Obsidian vault name for Roadmap links").setDesc("Used to build Open in Cadence links in the standalone Roadmap map.").addText((text) => text.setValue(this.plugin.settings.cadenceVaultName || "Cadence").onChange(async (value) => {
           this.plugin.settings.cadenceVaultName = value.trim() || "Cadence";
-          await this.plugin.saveSettings();
-        }));
-        new obsidian.Setting(containerEl).setName("Open Cadence on Obsidian startup").setDesc("Auto-open the Cadence Home command centre when Obsidian launches.").addToggle((t) => t.setValue(!!this.plugin.settings.openOnStartup).onChange(async (v) => {
-          this.plugin.settings.openOnStartup = v;
-          await this.plugin.saveSettings();
-        }));
-        new obsidian.Setting(containerEl).setName("Open Cadence in pop-out window").setDesc("When Cadence opens from startup, ribbon, or command, prefer a detached Obsidian window instead of a main-window tab.").addToggle((t) => t.setValue(!!this.plugin.settings.openInPopout).onChange(async (v) => {
-          this.plugin.settings.openInPopout = v;
-          await this.plugin.saveSettings();
-        }));
-        new obsidian.Setting(containerEl).setName("Remember Cadence pop-out position").setDesc("Save the detached Cadence window size and monitor position, then restore it the next time Cadence opens in a pop-out window.").addToggle((t) => t.setValue(this.plugin.settings.rememberPopoutGeometry !== false).onChange(async (v) => {
-          this.plugin.settings.rememberPopoutGeometry = v;
           await this.plugin.saveSettings();
         }));
         const defaultDrop = new obsidian.Setting(containerEl).setName("Default tab").setDesc("Which surface opens first when you launch the Cadence app.");
@@ -19181,6 +19242,23 @@ ${rawImage}`;
           await this.saveData(migrated.persisted);
         }
         if (secured.migrated && secured.warnings.length === 0) await this.saveData(secured.persisted);
+        if (!Array.isArray(loaded.operatingHours) || Number(loaded.operatingHoursVersion || 0) < 1) {
+          const legacyStart = Math.max(0, Math.min(23, Number(loaded.roadmapWorkdayStart) || 7));
+          const legacyWeekdayEnd = Math.max(legacyStart + 1, Math.min(24, Number(loaded.roadmapMonThuEnd) || 17));
+          const legacyFridayEnd = Math.max(legacyStart + 1, Math.min(24, Number(loaded.roadmapFridayEnd) || 11));
+          this.settings.operatingHours = [
+            { enabled: false, start: legacyStart, end: legacyWeekdayEnd },
+            { enabled: true, start: legacyStart, end: legacyWeekdayEnd },
+            { enabled: true, start: legacyStart, end: legacyWeekdayEnd },
+            { enabled: true, start: legacyStart, end: legacyWeekdayEnd },
+            { enabled: true, start: legacyStart, end: legacyWeekdayEnd },
+            { enabled: true, start: legacyStart, end: legacyFridayEnd },
+            { enabled: false, start: legacyStart, end: legacyWeekdayEnd }
+          ];
+          this.settings.operatingHoursVersion = 1;
+          const migrated = prepareSettingsForPersistence2(this.settings, this.app.secretStorage, SECRET_FIELDS);
+          await this.saveData(migrated.persisted);
+        }
         if (Number(this.settings.workScopeVersion || 0) < 1) {
           const scopeAlias = (value) => ({
             core: "mainline",
