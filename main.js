@@ -6268,7 +6268,17 @@ ${this.previewEl.innerHTML}
       }
       _projectPortfolio(entity, file) {
         const fm = entity && entity.frontmatter || {};
-        return explicitProjectPortfolio2({ portfolio: fm.portfolio });
+        const portfolio = explicitProjectPortfolio2({ portfolio: fm.portfolio });
+        const aliases = {
+          "Strategic Growth": "Strategy & Growth",
+          "Operational Excellence": "Operations & Improvement",
+          "People & Organization": "People & Culture",
+          "Knowledge & Operating Systems": "Knowledge & Learning",
+          "CNC & Machining": "Core Work",
+          "Cadence Planning System": "Digital Tools & Systems",
+          "Obsidian Companion Platform": "Personal Knowledge System"
+        };
+        return aliases[portfolio] || portfolio;
       }
       _entityEnabled(entityKey) {
         return this._isModuleEnabled(ENTITY_MODULES[entityKey]);
