@@ -17237,16 +17237,27 @@ ${rows}
           this.plugin.settings.roadmapActiveLimit = Math.max(1, Number(value) || 3);
           await this.plugin.saveSettings();
         }));
-        new obsidian.Setting(containerEl).setName("Core operating hours").setDesc("Shared by Planner and Roadmap: start hour, Monday-Thursday closing hour, and Friday closing hour. Saturday and Sunday remain closed.").addText((text) => text.setPlaceholder("7").setValue(String(this.plugin.settings.roadmapWorkdayStart ?? 7)).onChange(async (value) => {
-          this.plugin.settings.roadmapWorkdayStart = Math.max(0, Math.min(23, Number(value) || 7));
-          await this.plugin.saveSettings();
-        })).addText((text) => text.setPlaceholder("17").setValue(String(this.plugin.settings.roadmapMonThuEnd ?? 17)).onChange(async (value) => {
-          this.plugin.settings.roadmapMonThuEnd = Math.max(1, Math.min(24, Number(value) || 17));
-          await this.plugin.saveSettings();
-        })).addText((text) => text.setPlaceholder("11").setValue(String(this.plugin.settings.roadmapFridayEnd ?? 11)).onChange(async (value) => {
-          this.plugin.settings.roadmapFridayEnd = Math.max(1, Math.min(24, Number(value) || 11));
-          await this.plugin.saveSettings();
-        }));
+        const hoursSetting = containerEl.createDiv({ cls: "cad-settings-roadmap-hours" });
+        const hoursInfo = hoursSetting.createDiv({ cls: "cad-settings-roadmap-hours-info" });
+        hoursInfo.createDiv({ cls: "setting-item-name", text: "Core operating hours" });
+        hoursInfo.createDiv({ cls: "setting-item-description", text: "Shared by Planner and Roadmap. Saturday and Sunday remain closed." });
+        const hoursControls = hoursSetting.createDiv({ cls: "cad-settings-roadmap-hours-controls" });
+        const addHourControl = (label, settingKey, fallback, maximum) => {
+          const field = hoursControls.createEl("label", { cls: "cad-settings-roadmap-hour" });
+          field.createSpan({ text: label });
+          const input = field.createEl("input", { type: "number", value: String(this.plugin.settings[settingKey] ?? fallback) });
+          input.min = "0";
+          input.max = String(maximum);
+          input.step = "1";
+          input.addEventListener("change", async () => {
+            this.plugin.settings[settingKey] = Math.max(0, Math.min(maximum, Number(input.value) || fallback));
+            input.value = String(this.plugin.settings[settingKey]);
+            await this.plugin.saveSettings();
+          });
+        };
+        addHourControl("Start", "roadmapWorkdayStart", 7, 23);
+        addHourControl("Mon-Thu end", "roadmapMonThuEnd", 17, 24);
+        addHourControl("Friday end", "roadmapFridayEnd", 11, 24);
         [
           ["roadmapMasterPlanPath", "Master plan path"],
           ["roadmapRegistryPath", "Initiative Registry path"],

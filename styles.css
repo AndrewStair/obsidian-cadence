@@ -6121,6 +6121,10 @@ button.cad-portfolio-scope-picker:focus-visible {
   border-radius:5px;
   background:transparent;
 }
+.cadence-planner .cad-pl-nav > .cad-pl-btn:not(.primary) {
+  border-color:var(--background-modifier-border);
+  background:var(--background-secondary);
+}
 .cadence-planner .cad-pl-btn.primary {
   border-color:var(--background-modifier-border);
   background:var(--background-primary);
@@ -6138,6 +6142,34 @@ button.cad-portfolio-scope-picker:focus-visible {
   margin:0 auto;
   padding:0;
   border:0;
+}
+.cad-settings-roadmap-hours {
+  display:grid;
+  grid-template-columns:minmax(220px,1fr) minmax(340px,1.35fr);
+  gap:18px;
+  align-items:center;
+  margin:8px 0;
+  padding:14px 20px;
+  border-top:1px solid var(--background-modifier-border);
+}
+.cad-settings-roadmap-hours-info { min-width:0; }
+.cad-settings-roadmap-hours-info .setting-item-name { margin-bottom:4px; }
+.cad-settings-roadmap-hours-controls {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.cad-settings-roadmap-hour {
+  display:grid;
+  gap:5px;
+  min-width:0;
+  color:var(--text-muted);
+  font-size:11px;
+  font-weight:700;
+}
+.cad-settings-roadmap-hour input { width:100%; }
+@media(max-width:760px) {
+  .cad-settings-roadmap-hours { grid-template-columns:1fr; }
 }
 @container cadence-planner (max-width:1220px) {
   .cadence-planner .cad-pl-header {
