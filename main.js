@@ -7155,8 +7155,6 @@ ${this.previewEl.innerHTML}
           item.addEventListener("click", onClick);
           return item;
         };
-        createBottomAction("cad-nav-todo", "Open Cadence To Do", "sparkles", () => this.app.workspace.openLinkText("✨ Cadence To Do", "", false));
-        createBottomAction("cad-nav-purpose", "Open Obsidian Purpose", "gem", () => this.app.workspace.openLinkText("01_Obsidian & Organization/💎 Obsidian Purpose", "", false));        createBottomAction("cad-nav-search", "Search Cadence", "search", () => new CadenceSearchModal(this.app, this.plugin, this).open());
         const content = body.createDiv({ cls: "cad-app-content" });
         if (this.detailFile && this.detailEntityKey) {
           await this.renderEntityDetail(content, this.detailEntityKey, this.detailFile);
@@ -9351,13 +9349,13 @@ Its projects will become independent. No project files will be deleted.`)) retur
       async renderPortfoliosView(root) {
         root.addClass("cadence-projects");
         const activeScopes = this._workScopes();
-        const organizationScope = activeScopes.length === 1 ? activeScopes[0] : null;
+        const organizationScope = activeScopes.includes(this._workScope()) ? this._workScope() : activeScopes[0] || null;
         const { projects } = await this._projectPortfolioData();
         const relationshipGraph = await this._relationshipGraph();
         this._renderPageHeader(root, "Portfolios", "Organize related projects without hiding independent work", (right) => {
           const organize = right.createEl("button", { cls: `cad-btn${this.portfolioEditMode ? " primary" : ""}`, text: this.portfolioEditMode ? "Done Organizing" : "Organize" });
           organize.disabled = !organizationScope;
-          organize.title = organizationScope ? `Organize ${this._workScopeLabel(organizationScope)} portfolios` : "Enable exactly one Work Scope to organize its portfolios";
+          organize.title = organizationScope ? `Organize visible portfolios. New portfolios use ${this._workScopeLabel(organizationScope)}` : "Enable at least one Work Scope to organize portfolios";
           organize.addEventListener("click", async () => {
             this.portfolioEditMode = !this.portfolioEditMode;
             await this.render();
@@ -11677,7 +11675,7 @@ Projects will remain on the map.`)) return;
         if (layout.headerVisible !== false) {
           const header = shell.createDiv({ cls: "cad-home3-header" });
           const heading = header.createDiv({ cls: "cad-home3-heading" });
-          heading.createDiv({ cls: "cad-eyebrow", text: "HOME 3" });
+          heading.createDiv({ cls: "cad-eyebrow", text: "HOME" });
           heading.createDiv({ cls: "cad-home3-title", text: layout.heading || "Dashboard" });
         }
         const grid = shell.createDiv({ cls: "cad-home3-grid" });
@@ -11809,7 +11807,7 @@ Projects will remain on the map.`)) return;
         const actions = editor.createDiv({ cls: "cad-home3-sidebar-actions" });
         const reset = actions.createEl("button", { cls: "cad-btn", text: "Reset" });
         reset.addEventListener("click", () => {
-          if (!confirm("Reset Home 3 to the default tile layout?")) return;
+          if (!confirm("Reset the Home dashboard to the default tile layout?")) return;
           this.home3DraftLayout = this._home3DefaultLayout();
           void this._renderPreservingScroll();
         });
@@ -16397,6 +16395,7 @@ ${rows}
         const orientation = settings.calendarOrientation === "vertical" ? "vertical" : "horizontal";
         const detailedTime = settings.calendarDisplayMode === "time-grid";
         const timeGrid = view === "day" || view === "week";
+        root.toggleClass("cadence-planner-time-grid", timeGrid);
         const today = startOfDay(/* @__PURE__ */ new Date());
         const dateKey = (date) => {
           const pad2 = (value) => String(value).padStart(2, "0");
@@ -19159,6 +19158,51 @@ ${rawImage}`;
             systems_tools: ["Cadence Planning System", "Obsidian Companion Platform"]
           };
           this.settings.workScopeVersion = 1;
+          const migrated = prepareSettingsForPersistence2(this.settings, this.app.secretStorage, SECRET_FIELDS);
+          await this.saveData(migrated.persisted);
+        }
+        if (Number(this.settings.workScopeVersion || 0) < 2) {
+          const portfolioAliases = new Map([
+            ["Strategic Growth", "Strategy & Growth"],
+            ["Operational Excellence", "Operations & Improvement"],
+            ["People & Organization", "People & Culture"],
+            ["Knowledge & Operating Systems", "Knowledge & Learning"],
+            ["CNC & Machining", "Core Work"],
+            ["Cadence Planning System", "Digital Tools & Systems"],
+            ["Obsidian Companion Platform", "Personal Knowledge System"]
+          ]);
+          const scopeAlias = (value) => ({
+            core: "mainline",
+            personal: "mainline",
+            systems: "systems_tools",
+            company_development: "company_development",
+            mainline: "mainline",
+            systems_tools: "systems_tools"
+          })[String(value || "").toLowerCase()] || "mainline";
+          const definitions = (Array.isArray(this.settings.portfolioDefinitions) ? this.settings.portfolioDefinitions : []).filter((definition) => definition && definition.name).map((definition) => Object.assign({}, definition, {
+            scope: scopeAlias(definition.scope),
+            name: portfolioAliases.get(definition.name) || definition.name
+          }));
+          const desiredPortfolios = [
+            ["company_development", "Strategy & Growth"],
+            ["company_development", "Operations & Improvement"],
+            ["company_development", "People & Culture"],
+            ["company_development", "Knowledge & Learning"],
+            ["mainline", "Core Work"],
+            ["mainline", "Professional Development"],
+            ["systems_tools", "Digital Tools & Systems"],
+            ["systems_tools", "Personal Knowledge System"]
+          ];
+          desiredPortfolios.forEach(([scope, name]) => {
+            if (!definitions.some((definition) => definition.scope === scope && definition.name === name)) definitions.push({ scope, name });
+          });
+          this.settings.portfolioDefinitions = definitions;
+          this.settings.portfolioOrderByScope = {
+            company_development: ["Strategy & Growth", "Operations & Improvement", "People & Culture", "Knowledge & Learning"],
+            mainline: ["Core Work", "Professional Development"],
+            systems_tools: ["Digital Tools & Systems", "Personal Knowledge System"]
+          };
+          this.settings.workScopeVersion = 2;
           const migrated = prepareSettingsForPersistence2(this.settings, this.app.secretStorage, SECRET_FIELDS);
           await this.saveData(migrated.persisted);
         }

@@ -1486,9 +1486,17 @@ body.theme-dark .cadence-app.cad-dark .cad-btn:hover {
   border-bottom: 1px solid var(--background-modifier-border);
 }
 .cad-home3-sidebar-head .cad-icon-btn {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  padding: 6px;
+  flex: 0 0 32px;
+}
+.cad-home3-sidebar-head .cad-icon-btn svg,
+.cad-home3-sidebar-head .cad-icon-btn .svg-icon {
+  width: 18px !important;
+  height: 18px !important;
+  stroke-width: 2.25;
 }
 .cad-home3-sidebar-title {
   min-width: 0;
@@ -6135,6 +6143,13 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
 .cad-calendar-filter-bar.is-open { display:flex; }
 .cadence-planner.cadence-planner-month {
   overflow-y:auto;
+}
+.cadence-planner.cadence-planner-time-grid > .cad-calendar {
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 }
 .cad-calendar-week .cad-pl-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
 .cadence-planner .cad-calendar-day,
