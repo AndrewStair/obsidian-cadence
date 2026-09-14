@@ -4,5 +4,15 @@ node_modules/
 .env
 .env.local
 data.json
+cadence.local.json
+*.local.json
+*.local.js
+*.local.ts
+
+# Obsidian runtime and local release material. These belong to an individual's
+# vault or machine and must never become part of the distributable plugin.
+.obsidian/
+releases/
+private/
 
 tasknotes/

@@ -75,7 +75,7 @@ Bring an entire client list, pipeline, or partner roster in from a spreadsheet. 
 3. Install → Enable
 
 ### Manual install (works today)
-1. Download `main.js`, `manifest.json`, `styles.css` from the [latest release](https://github.com/wesswart77/obsidian-cadence/releases/latest)
+1. Download `main.js`, `manifest.json`, `styles.css` from the [latest release](https://github.com/AndrewStair/obsidian-cadence/releases/latest)
 2. Drop them into `<your-vault>/.obsidian/plugins/cadence-planner/`
 3. Settings → Community plugins → Reload → Enable **Cadence**
 
@@ -91,6 +91,20 @@ Bring an entire client list, pipeline, or partner roster in from a spreadsheet. 
 6. **Make Cadence your homepage** — Settings → Cadence → toggle "Open Cadence on Obsidian startup"
 
 Cadence creates folders on demand: `Cadence/Contacts/`, `Cadence/Pipeline/`, `Cadence/Partners/`, etc. Move them anywhere afterwards — change paths in Settings if you do.
+
+---
+
+## AndrewStair fork
+
+This repository is AndrewStair's public fork of [wesswart77/obsidian-cadence](https://github.com/wesswart77/obsidian-cadence), maintained for general-purpose use. It intentionally contains no vault data, credentials, or private integrations.
+
+Before publishing a release, run:
+
+```powershell
+node scripts/audit-public-release.mjs
+```
+
+Personal implementations are maintained in separate private repositories and must never be merged or pushed here wholesale. The upstream license and author attribution remain in [LICENSE](LICENSE).
 
 ---
 
