@@ -9244,8 +9244,8 @@ This will move the current project note to Overview.md and split Milestones, Tas
         menu.addItem((item) => item.setTitle("Make projects independent").setIcon("unlink").onClick(() => this._removePortfolio(scope, name, projects)));
         menu.showAtMouseEvent(event);
       }
-      async _renamePortfolio(scope, oldName, projects) {
-        const name = String(await this._prompt({ title: "Rename portfolio", defaultValue: oldName, cta: "Rename" }) || "").trim();
+      async _renamePortfolio(scope, oldName, projects, nextName = null) {
+        const name = String(nextName == null ? await this._prompt({ title: "Rename portfolio", defaultValue: oldName, cta: "Rename" }) : nextName).trim();
         if (!name || name === oldName) return;
         for (const project of projects) {
           const patch = { portfolio: name };
@@ -9498,7 +9498,38 @@ Its projects will become independent. No project files will be deleted.`)) retur
           }
           const heading = top.createDiv({ cls: "cad-portfolio-heading" });
           heading.createDiv({ cls: "cad-portfolio-kind", text: independent ? "Unassigned projects" : "Portfolio" });
-          heading.createDiv({ cls: "cad-portfolio-title", text: name });
+          const title = heading.createDiv({ cls: "cad-portfolio-title", text: name });
+          if (this.portfolioEditMode && !independent) {
+            title.addClass("is-editable");
+            title.title = "Click to rename portfolio";
+            title.addEventListener("click", (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              if (heading.querySelector(".cad-portfolio-title-input")) return;
+              const input = heading.createEl("input", { cls: "cad-portfolio-title-input", type: "text", value: name });
+              title.replaceWith(input);
+              input.focus();
+              input.select();
+              let finished = false;
+              const finish = async (commit) => {
+                if (finished) return;
+                finished = true;
+                const next = input.value.trim();
+                if (commit && next && next !== name) await this._renamePortfolio(portfolioScope, name, items, next);
+                else await this._renderPreservingScroll();
+              };
+              input.addEventListener("keydown", (keyEvent) => {
+                if (keyEvent.key === "Enter") {
+                  keyEvent.preventDefault();
+                  void finish(true);
+                } else if (keyEvent.key === "Escape") {
+                  keyEvent.preventDefault();
+                  void finish(false);
+                }
+              });
+              input.addEventListener("blur", () => void finish(true));
+            });
+          }
           if (this.portfolioEditMode && organizationScope && name !== "Independent Projects") {
             const controls = top.createDiv({ cls: "cad-portfolio-controls" });
             const index = named.indexOf(name);
@@ -9527,7 +9558,6 @@ Its projects will become independent. No project files will be deleted.`)) retur
               await this._savePortfolioOrder(organizationScope, named);
               await this._renderPreservingScroll();
             }, index >= named.length - 1);
-            control("pencil", "Rename portfolio", () => this._renamePortfolio(organizationScope, name, items));
             control("trash-2", "Remove portfolio", () => this._removePortfolio(organizationScope, name, items));
           }
           card.createDiv({ cls: "cad-portfolio-meta", text: `${items.length} project${items.length === 1 ? "" : "s"} \xB7 ${items.reduce((sum, item) => sum + item.openTasks.length, 0)} open tasks` });
@@ -17447,6 +17477,7 @@ ${rows}
       async onload() {
         await this.loadSettings();
         this.applyRootViewBackground();
+        this.app.workspace.onLayoutReady(() => this.applyRootViewBackground(true));
         this.registerView(
           VIEW_TYPE_CADENCE_APP,
           (leaf) => new CadenceAppView(leaf, this)
@@ -19182,13 +19213,13 @@ ${body}
         this._revokeRootBgObjectUrl();
         this._rootViewBackgroundSignature = null;
       }
-      applyRootViewBackground() {
+      applyRootViewBackground(force = false) {
         const color = String(this.settings.rootViewBackgroundColor || "").trim();
         const rawImage = String(this.settings.rootViewBackgroundImage || "").trim();
         const signature = `${color}
 ${rawImage}`;
         const existing = document.getElementById("cadence-root-view-background-style");
-        if (this._rootViewBackgroundSignature === signature && (existing || !color && !rawImage)) return;
+        if (!force && this._rootViewBackgroundSignature === signature && (existing || !color && !rawImage)) return;
         this.removeRootViewBackground();
         const image = this._backgroundCssUrl(rawImage);
         this._rootViewBackgroundSignature = signature;
