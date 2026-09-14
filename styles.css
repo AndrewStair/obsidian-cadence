@@ -5162,6 +5162,8 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
 /* Roadmap overview: a strategic journey rather than another project dashboard. */
 .cad-roadmap-map-scroll {
   margin:22px 0 18px;
+  width:100%;
+  min-width:0;
   overflow:visible;
   padding:0 0 12px;
 }
@@ -5169,7 +5171,8 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
   --journey-teal:#7edbd1;
   --journey-purple:#9b5cff;
   --journey-gold:#efbd58;
-  min-width:1050px;
+  width:100%;
+  min-width:0;
   overflow:visible;
   border:1px solid rgba(181,206,223,.24);
   border-radius:14px;
@@ -5178,7 +5181,7 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
 }
 .cad-roadmap-map-head,.cad-roadmap-map-row {
   display:grid;
-  grid-template-columns:280px minmax(770px,1fr);
+  grid-template-columns:minmax(220px,27%) minmax(0,1fr);
 }
 .cad-roadmap-map-head {
   position:relative;
@@ -5364,7 +5367,7 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
 .cad-roadmap-picker-section { color:var(--text-muted); font-size:11px; }
 
 @media (max-width:1000px) {
-  .cad-roadmap-map-scroll { overflow-x:auto; overflow-y:hidden; padding-bottom:300px; margin-bottom:-288px; }
+  .cad-roadmap-map-scroll { overflow:visible; padding-bottom:12px; margin-bottom:0; }
   .cad-roadmap-overview-initiative-grid { grid-template-columns:1fr; }
   .cad-roadmap-details-drawer { grid-template-columns:1fr; }
   .cad-roadmap-details-outcomes { grid-column:auto; }
@@ -5372,7 +5375,7 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
 
 /* High-fidelity Roadmap Overview overrides. Keep these after the shared button rules. */
 .cad-roadmap .cad-roadmap-map-head {
-  grid-template-columns:280px minmax(0,1fr) 145px;
+  grid-template-columns:minmax(180px,27%) minmax(0,1fr) auto;
 }
 .cad-roadmap .cad-roadmap-map-goal-head {
   position:static;
@@ -5914,6 +5917,15 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
   color:var(--interactive-accent);
 }
 .cad-portfolio-icon svg { width:17px; height:17px; }
+button.cad-portfolio-scope-picker {
+  border:1px solid transparent;
+  cursor:pointer;
+}
+button.cad-portfolio-scope-picker:hover,
+button.cad-portfolio-scope-picker:focus-visible {
+  border-color:color-mix(in srgb,var(--interactive-accent) 58%,var(--background-modifier-border));
+  background:color-mix(in srgb,var(--interactive-accent) 22%,transparent);
+}
 .cad-portfolio-title { font-size:16px; font-weight:750; }
 .cad-portfolio-meta { margin:10px 0 14px; color:var(--text-muted); font-size:11px; }
 .cad-portfolio-projects { display:grid; gap:7px; }
@@ -6092,6 +6104,8 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
   overflow:hidden;
   display:flex;
   flex-direction:column;
+  container-type:inline-size;
+  container-name:cadence-planner;
 }
 .cadence-planner .cad-pl-header {
   margin:0 0 12px;
@@ -6124,6 +6138,34 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
   margin:0 auto;
   padding:0;
   border:0;
+}
+@container cadence-planner (max-width:1220px) {
+  .cadence-planner .cad-pl-header {
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:8px 16px;
+    align-items:start;
+  }
+  .cadence-planner .cad-pl-title-wrap { grid-column:1; grid-row:1; }
+  .cadence-planner .cad-pl-stats {
+    grid-column:1;
+    grid-row:2;
+    justify-content:flex-start;
+    margin:0;
+  }
+  .cadence-planner .cad-pl-nav {
+    grid-column:2;
+    grid-row:1 / span 2;
+    align-self:center;
+    flex-wrap:nowrap;
+  }
+}
+@container cadence-planner (max-width:760px) {
+  .cadence-planner .cad-pl-header { grid-template-columns:1fr; }
+  .cadence-planner .cad-pl-title-wrap,
+  .cadence-planner .cad-pl-stats,
+  .cadence-planner .cad-pl-nav { grid-column:1; }
+  .cadence-planner .cad-pl-nav { grid-row:3; flex-wrap:wrap; }
 }
 .cadence-planner .cad-pl-stat {
   display:flex;

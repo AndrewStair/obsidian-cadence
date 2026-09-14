@@ -7165,6 +7165,7 @@ ${this.previewEl.innerHTML}
           item.addEventListener("click", onClick);
           return item;
         };
+        createBottomAction("cad-nav-search", "Search Cadence", "search", () => new CadenceSearchModal(this.app, this.plugin, this).open());
         const content = body.createDiv({ cls: "cad-app-content" });
         if (this.detailFile && this.detailEntityKey) {
           await this.renderEntityDetail(content, this.detailEntityKey, this.detailFile);
@@ -9184,6 +9185,35 @@ This will move the current project note to Overview.md and split Milestones, Tas
         await this._savePortfolioOrder(scope, [...(this.plugin.settings.portfolioOrderByScope || {})[scope] || [], name]);
         await this._renderPreservingScroll();
       }
+      async _movePortfolioToScope(name, fromScope, toScope, projects) {
+        if (!toScope || fromScope === toScope) return;
+        const definitions = Array.isArray(this.plugin.settings.portfolioDefinitions) ? [...this.plugin.settings.portfolioDefinitions] : [];
+        const definition = definitions.find((item) => item && item.name === name && item.scope === fromScope);
+        if (!definition) return;
+        definition.scope = toScope;
+        const orders = Object.assign({}, this.plugin.settings.portfolioOrderByScope || {});
+        orders[fromScope] = (orders[fromScope] || []).filter((entry) => entry !== name);
+        orders[toScope] = [...(orders[toScope] || []).filter((entry) => entry !== name), name];
+        this.plugin.settings.portfolioDefinitions = definitions;
+        this.plugin.settings.portfolioOrderByScope = orders;
+        for (const project of projects) {
+          await this._writeProjectFrontmatter(project.file, { cadence_scope: toScope, cadence_scopes: null });
+        }
+        await this.plugin.saveSettings();
+        await this._renderPreservingScroll();
+      }
+      _showPortfolioScopeMenu(event, name, scope, projects) {
+        event.preventDefault();
+        event.stopPropagation();
+        const menu = new obsidian.Menu();
+        menu.addItem((item) => item.setTitle("Work scope").setDisabled(true));
+        WORK_SCOPES2.forEach((candidate) => {
+          menu.addItem((item) => item.setTitle(candidate.label).setIcon(candidate.icon).setChecked(candidate.id === scope).onClick(() => this._movePortfolioToScope(name, scope, candidate.id, projects)));
+        });
+        menu.addSeparator();
+        menu.addItem((item) => item.setTitle("Make projects independent").setIcon("unlink").onClick(() => this._removePortfolio(scope, name, projects)));
+        menu.showAtMouseEvent(event);
+      }
       async _renamePortfolio(scope, oldName, projects) {
         const name = String(await this._prompt({ title: "Rename portfolio", defaultValue: oldName, cta: "Rename" }) || "").trim();
         if (!name || name === oldName) return;
@@ -9423,11 +9453,18 @@ Its projects will become independent. No project files will be deleted.`)) retur
             });
           }
           const top = card.createDiv({ cls: "cad-portfolio-card-head" });
-          const icon = top.createSpan({ cls: "cad-portfolio-icon" });
+          const icon = this.portfolioEditMode && !independent ? top.createEl("button", {
+            cls: "cad-portfolio-icon cad-portfolio-scope-picker",
+            attr: { type: "button", "aria-label": `Change work scope for ${name}` }
+          }) : top.createSpan({ cls: "cad-portfolio-icon" });
           icon.title = independent ? "Independent projects" : scopeDefinition ? scopeDefinition.label : "Portfolio";
           try {
             obsidian.setIcon(icon, independent ? "folder" : scopeDefinition ? scopeDefinition.icon : "folder-kanban");
           } catch (_) {
+          }
+          if (this.portfolioEditMode && !independent) {
+            icon.title = `Change work scope: ${scopeDefinition ? scopeDefinition.label : "Unassigned"}`;
+            icon.addEventListener("click", (event) => this._showPortfolioScopeMenu(event, name, portfolioScope, items));
           }
           const heading = top.createDiv({ cls: "cad-portfolio-heading" });
           heading.createDiv({ cls: "cad-portfolio-kind", text: independent ? "Unassigned projects" : "Portfolio" });
