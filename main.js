@@ -2827,6 +2827,7 @@ var require_main = __commonJS({
       calendarUxVersion: 5,
       calendarFiltersOpen: false,
       calendarUnscheduledOpen: false,
+      hideClosedCalendarDays: false,
       roadmapCalendarView: "month",
       roadmapCalendarFilters: { layer: "commitments", type: "all", plane: "all", completion: "open" },
       roadmapWorkdayStart: 7,
@@ -16600,6 +16601,11 @@ ${rows}
         } else if (view === "month") days = Array.from({ length: 42 }, (_, index) => addDays(monthGridStart, index));
         else if (view === "agenda") days = Array.from({ length: 30 }, (_, index) => addDays(startOfDay(this.plannerAnchor), index));
         else days = weekDates(this.plannerAnchor, settings.weekStartsOn);
+        const hideClosedDays = !!settings.hideClosedCalendarDays && (view === "week" || view === "month");
+        if (hideClosedDays) {
+          const openDays = days.filter((date) => operatingHours[date.getDay()] && operatingHours[date.getDay()].enabled);
+          if (openDays.length) days = openDays;
+        }
         const header = root.createDiv({ cls: "cad-pl-header" });
         const titleWrap = header.createDiv({ cls: "cad-pl-title-wrap" });
         titleWrap.createDiv({ cls: "cad-eyebrow", text: "CALENDAR" });
@@ -16773,7 +16779,9 @@ ${rows}
         mkStat("OPEN", totalOpen);
         mkStat("DONE", totalDone);
         mkStat("TOTAL", totalOpen + totalDone);
-        const calendar = root.createDiv({ cls: `cad-calendar cad-calendar-${view} cad-calendar-${orientation}${timeGrid || detailedTime ? " is-detailed-time" : ""}` });
+        const calendar = root.createDiv({ cls: `cad-calendar cad-calendar-${view} cad-calendar-${orientation}${timeGrid || detailedTime ? " is-detailed-time" : ""}${hideClosedDays ? " cad-calendar-hide-closed-days" : ""}` });
+        const calendarColumnCount = view === "month" ? hideClosedDays ? new Set(days.map((date) => date.getDay())).size : 7 : view === "week" ? days.length : 1;
+        calendar.style.setProperty("--cad-calendar-days", String(Math.max(1, calendarColumnCount)));
         let compactRange = null;
         const dateAtPointer = (event, fallback) => {
           const x2 = Number(event.clientX);
@@ -17242,8 +17250,9 @@ ${rows}
           if (!calendar.childElementCount) calendar.createDiv({ cls: "cad-empty-state", text: "Nothing scheduled in the next 30 days." });
         } else {
           if (view === "month") {
-            const week = weekDates(monthGridStart, settings.weekStartsOn);
+            const week = weekDates(monthGridStart, settings.weekStartsOn).filter((date) => !hideClosedDays || operatingHours[date.getDay()] && operatingHours[date.getDay()].enabled);
             const weekdays = calendar.createDiv({ cls: "cad-calendar-weekdays" });
+            weekdays.style.setProperty("--cad-calendar-days", String(Math.max(1, week.length)));
             week.forEach((date) => weekdays.createDiv({ text: date.toLocaleDateString(void 0, { weekday: "short" }).toUpperCase() }));
           }
           const grid = calendar.createDiv({ cls: "cad-pl-grid" });
@@ -17436,6 +17445,11 @@ ${rows}
           start.addEventListener("change", save);
           end.addEventListener("change", save);
         });
+        new obsidian.Setting(containerEl).setName("Hide closed days in Calendar").setDesc("When enabled, Week and Month views omit days marked closed above. Day and Agenda views remain unchanged.").addToggle((toggle) => toggle.setValue(!!this.plugin.settings.hideClosedCalendarDays).onChange(async (value) => {
+          this.plugin.settings.hideClosedCalendarDays = value;
+          await this.plugin.saveSettings();
+          this.plugin.refreshOpenViews();
+        }));
         containerEl.createEl("h3", { text: "Core Roadmap" });
         new obsidian.Setting(containerEl).setName("Active initiative limit").setDesc("Cadence warns before deliberately exceeding this company-development capacity.").addText((text) => text.setValue(String(this.plugin.settings.roadmapActiveLimit || 3)).onChange(async (value) => {
           this.plugin.settings.roadmapActiveLimit = Math.max(1, Number(value) || 3);

@@ -4359,9 +4359,9 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
 }
 .cad-calendar-day .cad-pl-grid { grid-template-columns: minmax(0, 1fr); }
 .cad-calendar-day .cad-pl-day { min-height: 420px; }
-.cad-calendar-week .cad-pl-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.cad-calendar-week .cad-pl-grid { grid-template-columns: repeat(var(--cad-calendar-days, 5), minmax(0, 1fr)); }
 .cad-calendar-month .cad-pl-grid {
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--cad-calendar-days, 7), minmax(0, 1fr));
   gap: 6px;
 }
 .cad-calendar-month .cad-pl-day {
@@ -4375,7 +4375,7 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
 .cad-calendar-month .cad-pl-meta { display: none; }
 .cad-calendar-weekdays {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--cad-calendar-days, 7), minmax(0, 1fr));
   gap: 6px;
   margin-bottom: 5px;
   color: var(--text-muted);
@@ -6311,7 +6311,7 @@ button.cad-portfolio-scope-picker:focus-visible {
   flex-direction:column;
   overflow:hidden;
 }
-.cad-calendar-week .cad-pl-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+.cad-calendar-week .cad-pl-grid { grid-template-columns:repeat(var(--cad-calendar-days,5),minmax(0,1fr)); }
 .cadence-planner .cad-calendar-day,
 .cadence-planner .cad-calendar-week {
   flex:1 1 auto;
