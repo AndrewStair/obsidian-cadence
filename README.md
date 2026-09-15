@@ -4,7 +4,7 @@ Cadence is a local-first operating system for planning and executing meaningful 
 
 This is the public fork maintained by [AndrewStair](https://github.com/AndrewStair), based on [wesswart77/obsidian-cadence](https://github.com/wesswart77/obsidian-cadence). It is intentionally general-purpose: no cloud account is required, and your vault remains the source of truth.
 
-> **Public build:** Cadence `0.29.0` carries the portable planning and project-management implementation from this fork. Private integrations, personal data, and machine-specific configuration are removed before publication.
+> **Public build:** Cadence `0.29.7` carries the portable planning and project-management implementation from this fork. Private integrations, personal data, and machine-specific configuration are removed before publication.
 
 ## Why Cadence
 
@@ -28,7 +28,7 @@ The public edition centers practical project management in Obsidian:
 | **Node Map** | A canvas-like view of project relationships, dependencies, tentative next steps, and containment. |
 | **Planning surfaces** | Inbox capture, daily focus, a calendar, and project-aware reviews. |
 | **Relationships** | Explicit links such as dependency, enablement, tentative next, related work, and containment. |
-| **Local customization** | Per-vault paths, preferences, work-scope names, and visual choices stored locally rather than in the repository. |
+| **Local customization** | An included Cadence background, optional per-vault background override, preferences, work-scope names, and visual choices stored locally rather than in the repository. |
 
 The fork also retains Home, Inbox, Today, Calendar, project boards, capture, reminders, and the optional upstream CRM and partner-management modules. A release only promises what its release notes and source actually include.
 
@@ -36,9 +36,9 @@ The fork also retains Home, Inbox, Today, Calendar, project boards, capture, rem
 
 ### Manual install
 
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](https://github.com/AndrewStair/obsidian-cadence/releases/latest).
+1. Download `main.js`, `manifest.json`, `styles.css`, and the `assets` folder from the [latest release](https://github.com/AndrewStair/obsidian-cadence/releases/latest).
 2. Create `<your-vault>/.obsidian/plugins/cadence-planner/`.
-3. Place those three files in that folder.
+3. Place the files and `assets` folder in that folder.
 4. In Obsidian, open **Settings -> Community plugins**, reload plugins, and enable **Cadence**.
 
 ### Development checkout

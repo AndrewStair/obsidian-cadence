@@ -1418,7 +1418,7 @@ body.theme-dark .cadence-app.cad-dark .cad-btn:hover {
   transition: background-color 120ms ease;
 }
 .cad-sidebar-reveal:hover {
-  background: color-mix(in srgb, var(--background-secondary) 50%, transparent) !important;
+  background: color-mix(in srgb, rgb(124 58 237) 25%, transparent) !important;
   box-shadow: none !important;
 }
 .cad-sidebar-reveal svg { display: none; }

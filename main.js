@@ -7027,7 +7027,7 @@ ${this.previewEl.innerHTML}
           "cadence-soon"
         ].forEach((cls) => root.removeClass(cls));
         root.toggleClass("cad-dark", !!this.plugin.settings.cadenceAppDark);
-        root.toggleClass("cadence-has-bg-image", !!String(this.plugin.settings.rootViewBackgroundImage || "").trim());
+        root.toggleClass("cadence-has-bg-image", this.plugin.hasRootViewBackgroundImage());
         root.toggleClass("cad-sidebar-compact", this.sidebarMode === "compact");
         root.toggleClass("cad-sidebar-hidden", this.sidebarMode === "hidden");
         if (this.hyperFocus) {
@@ -17219,9 +17219,15 @@ ${rows}
           this.plugin.settings.rootViewBackgroundColor = v;
           await this.plugin.saveSettings();
         }));
-        new obsidian.Setting(containerEl).setName("Root view background image").setDesc("Optional image for the Cadence tab only. Supports a vault-relative path such as 00_Attachments/Cadence/Cadence_Background.png, https, file:///, or an absolute Windows path.").addText((t) => t.setPlaceholder("00_Attachments/Cadence/Cadence_Background.png").setValue(this.plugin.settings.rootViewBackgroundImage || "").onChange(async (v) => {
+        const backgroundImageSetting = new obsidian.Setting(containerEl).setName("Custom Cadence background image").setDesc("Optional override for Cadence's included default background. Supports a vault-relative path, https URL, file:///, or an absolute Windows path. Leave empty to use the included image.").addText((t) => t.setPlaceholder("00_Attachments/Cadence/Cadence_Background.png").setValue(this.plugin.settings.rootViewBackgroundImage || "").onChange(async (v) => {
           this.plugin.settings.rootViewBackgroundImage = v;
           await this.plugin.saveSettings();
+        }));
+        backgroundImageSetting.addButton((b) => b.setButtonText("Set to default").onClick(async () => {
+          this.plugin.settings.rootViewBackgroundImage = "";
+          await this.plugin.saveSettings();
+          this.display();
+          new obsidian.Notice("Restored the included Cadence background.");
         }));
         containerEl.createEl("h3", { text: "Modules" });
         containerEl.createEl("p", {
@@ -19199,6 +19205,16 @@ ${body}
         }
         return raw;
       }
+      _defaultBackgroundPath() {
+        const adapter = this.app && this.app.vault && this.app.vault.adapter;
+        const vaultBase = adapter && typeof adapter.getBasePath === "function" ? adapter.getBasePath() : "";
+        const configDir = this.app && this.app.vault && this.app.vault.configDir || ".obsidian";
+        if (!vaultBase || !this.manifest || !this.manifest.id) return "";
+        return path.join(vaultBase, configDir, "plugins", this.manifest.id, "assets", "cadence-background.png");
+      }
+      hasRootViewBackgroundImage() {
+        return !!String(this.settings.rootViewBackgroundImage || "").trim() || !!this._defaultBackgroundPath();
+      }
       _revokeRootBgObjectUrl() {
         if (!this._rootBgObjectUrl) return;
         try {
@@ -19215,9 +19231,10 @@ ${body}
       }
       applyRootViewBackground(force = false) {
         const color = String(this.settings.rootViewBackgroundColor || "").trim();
-        const rawImage = String(this.settings.rootViewBackgroundImage || "").trim();
+        const customImage = String(this.settings.rootViewBackgroundImage || "").trim();
+        const rawImage = customImage || this._defaultBackgroundPath();
         const signature = `${color}
-${rawImage}`;
+${customImage || "[default]"}`;
         const existing = document.getElementById("cadence-root-view-background-style");
         if (!force && this._rootViewBackgroundSignature === signature && (existing || !color && !rawImage)) return;
         this.removeRootViewBackground();
@@ -19388,7 +19405,7 @@ ${rawImage}`;
         this.configureTrelloAutoSync();
       }
       refreshBackgroundImageClass() {
-        const hasImage = !!String(this.settings.rootViewBackgroundImage || "").trim();
+        const hasImage = this.hasRootViewBackgroundImage();
         this.app.workspace.getLeavesOfType(VIEW_TYPE_CADENCE_APP).forEach((leaf) => {
           const root = leaf && leaf.view && leaf.view.containerEl ? leaf.view.containerEl.querySelector(".cadence-app") : null;
           if (root) root.toggleClass("cadence-has-bg-image", hasImage);
