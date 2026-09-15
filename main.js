@@ -16349,6 +16349,17 @@ ${rows}
           onSaved: () => this._renderPreservingScroll()
         }).open();
       }
+      async _deleteCalendarEvent(item, anchorEl) {
+        if (!item || item.kind !== "event") return false;
+        if (!await cadenceConfirm(anchorEl || this.containerEl, "Delete this event?", { title: "Delete event", confirmText: "Delete", danger: true })) return false;
+        if (!item.recurring && !item.isException && item.eventEntity && item.eventEntity.file) {
+          await this.app.fileManager.trashFile(item.eventEntity.file);
+          await this._renderPreservingScroll();
+          return true;
+        }
+        await this._calendarApplyEventPatch(item, { status: "cancelled" });
+        return true;
+      }
       _openCalendarLinkedProject(item) {
         if (!item) return false;
         const directFile = item.record && item.record.file;
@@ -16417,6 +16428,7 @@ ${rows}
           const menu = new obsidian.Menu();
           menu.addItem((entry) => entry.setTitle("Edit event").setIcon("pencil").onClick(() => this._openCalendarEventEditor(item)));
           menu.addItem((entry) => entry.setTitle("Duplicate event").setIcon("copy").onClick(() => this._duplicateCalendarEvent(item)));
+          menu.addItem((entry) => entry.setTitle("Delete event").setIcon("trash-2").onClick(() => void this._deleteCalendarEvent(item, element)));
           const directFile = item.record && item.record.file;
           const linkedPath = item.event && (item.event.project || item.event.linkedPath);
           const linkedFile = directFile || (linkedPath ? resolveProjectFile(this.app, linkedPath) : null);
