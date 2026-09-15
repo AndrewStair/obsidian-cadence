@@ -3883,6 +3883,73 @@ ${String(value || "").trim() || "_None yet._"}`;
       }
       return d.toLocaleDateString(void 0, { month: "short", day: "numeric" }) + " " + time;
     }
+    function cadenceDialogDocument(source) {
+      const element = source && (source.contentEl || source.containerEl || source);
+      return element && element.ownerDocument || document;
+    }
+    function cadenceDialog(source, message, options = {}) {
+      const doc = cadenceDialogDocument(source);
+      return new Promise((resolve) => {
+        const previousFocus = doc.activeElement;
+        const backdrop = doc.createElement("div");
+        backdrop.className = "cad-confirm-backdrop";
+        const dialog = doc.createElement("section");
+        dialog.className = "cad-confirm-dialog";
+        dialog.setAttribute("role", "dialog");
+        dialog.setAttribute("aria-modal", "true");
+        const title = doc.createElement("h3");
+        title.textContent = options.title || "Confirm";
+        const copy = doc.createElement("div");
+        copy.className = "cad-confirm-copy";
+        copy.textContent = String(message || "");
+        const actions = doc.createElement("div");
+        actions.className = "cad-confirm-actions";
+        const close = (value) => {
+          doc.removeEventListener("keydown", onKey, true);
+          backdrop.remove();
+          if (previousFocus && typeof previousFocus.focus === "function") previousFocus.focus();
+          resolve(value);
+        };
+        const onKey = (event) => {
+          if (event.key === "Escape" && options.cancel !== false) {
+            event.preventDefault();
+            close(false);
+          }
+          if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+            event.preventDefault();
+            close(true);
+          }
+        };
+        if (options.cancel !== false) {
+          const cancel = doc.createElement("button");
+          cancel.type = "button";
+          cancel.className = "cad-btn";
+          cancel.textContent = options.cancelText || "Cancel";
+          cancel.addEventListener("click", () => close(false));
+          actions.appendChild(cancel);
+        }
+        const accept = doc.createElement("button");
+        accept.type = "button";
+        accept.className = `cad-btn primary${options.danger ? " danger" : ""}`;
+        accept.textContent = options.confirmText || "Confirm";
+        accept.addEventListener("click", () => close(true));
+        actions.appendChild(accept);
+        dialog.append(title, copy, actions);
+        backdrop.appendChild(dialog);
+        backdrop.addEventListener("click", (event) => {
+          if (event.target === backdrop && options.cancel !== false) close(false);
+        });
+        doc.body.appendChild(backdrop);
+        doc.addEventListener("keydown", onKey, true);
+        setTimeout(() => accept.focus(), 0);
+      });
+    }
+    function cadenceConfirm(source, message, options = {}) {
+      return cadenceDialog(source, message, Object.assign({ title: "Confirm" }, options));
+    }
+    function cadenceAlert(source, message, options = {}) {
+      return cadenceDialog(source, message, Object.assign({ title: "Cadence", confirmText: "OK", cancel: false }, options));
+    }
     var CadenceCaptureModal = class extends obsidian.Modal {
       constructor(app, opts) {
         super(app);
@@ -4575,7 +4642,7 @@ ${String(value || "").trim() || "_None yet._"}`;
         if (this.file || this.onDelete) {
           const remove = actions.createEl("button", { cls: "cad-btn danger", text: "Delete" });
           remove.addEventListener("click", async () => {
-            if (!confirm("Delete this Event?")) return;
+            if (!await cadenceConfirm(this.contentEl, "Delete this event?", { title: "Delete event", confirmText: "Delete", danger: true })) return;
             if (this.onDelete) await this.onDelete();
             else if (this.file) await this.app.fileManager.trashFile(this.file);
             this.close();
@@ -4760,7 +4827,7 @@ ${String(value || "").trim() || "_None yet._"}`;
           del.type = "button";
           del.style.marginRight = "auto";
           del.addEventListener("click", async () => {
-            if (!confirm("Delete this reminder?")) return;
+            if (!await cadenceConfirm(this.contentEl, "Delete this reminder?", { title: "Delete reminder", confirmText: "Delete", danger: true })) return;
             await this.plugin.deleteReminder(this.reminder.id);
             this._submitted = true;
             this.close();
@@ -6269,6 +6336,12 @@ ${this.previewEl.innerHTML}
       _operatingHours() {
         return normalizeOperatingHours(this.plugin.settings.operatingHours);
       }
+      _confirm(message, options = {}) {
+        return cadenceConfirm(this.containerEl, message, options);
+      }
+      _alert(message, options = {}) {
+        return cadenceAlert(this.containerEl, message, options);
+      }
       _syncWorkScopeButtons() {
         const active = new Set(this._workScopes());
         const root = this.containerEl && this.containerEl.children ? this.containerEl.children[1] : null;
@@ -7347,7 +7420,7 @@ ${this.previewEl.innerHTML}
         openNote.addEventListener("click", () => this.app.workspace.openLinkText(file.path, "", false));
         const deleteBtn = headRight.createEl("button", { cls: "cad-btn cad-btn-danger", text: "Delete" });
         deleteBtn.addEventListener("click", async () => {
-          if (!confirm(`Delete this ${def.label.toLowerCase()}? This moves the file to trash.`)) return;
+          if (!await this._confirm(`Delete this ${def.label.toLowerCase()}? This moves the file to trash.`, { title: `Delete ${def.label.toLowerCase()}`, confirmText: "Delete", danger: true })) return;
           try {
             await this.app.vault.trash(file, true);
             new obsidian.Notice(`Deleted ${def.label}: ${file.basename}`);
@@ -7545,9 +7618,9 @@ ${this.previewEl.innerHTML}
           new obsidian.Notice(validation.errors.join(" "));
           return false;
         }
-        if (validation.warnings.length && !confirm(`${validation.warnings.join("\n")}
+        if (validation.warnings.length && !await this._confirm(`${validation.warnings.join("\n")}
 
-Add it anyway?`)) return false;
+Add it anyway?`, { title: "Relationship warnings", confirmText: "Add relationship" })) return false;
         const owner = graph.owners.get(endpointKey2(candidate.source_type, candidate.source_id));
         if (!owner) {
           new obsidian.Notice("Could not resolve the relationship source project.");
@@ -7616,7 +7689,7 @@ Add it anyway?`)) return false;
         const records = (relationships || []).filter(Boolean);
         if (!records.length) return false;
         const prompt = records.length === 1 ? "Remove this project relationship?" : `Remove all ${records.length} relationships represented by this line?`;
-        if (!confirm(prompt)) return false;
+        if (!await this._confirm(prompt, { title: "Remove relationship", confirmText: "Remove", danger: true })) return false;
         const idsByFile = /* @__PURE__ */ new Map();
         records.forEach((relationship) => {
           const owner = graph.owners.get(endpointKey2(relationship.source_type, relationship.source_id));
@@ -7643,9 +7716,9 @@ Add it anyway?`)) return false;
           new obsidian.Notice(validation.errors.join(" "));
           return false;
         }
-        if (validation.warnings.length && !confirm(`${validation.warnings.join("\n")}
+        if (validation.warnings.length && !await this._confirm(`${validation.warnings.join("\n")}
 
-Change it anyway?`)) return false;
+Change it anyway?`, { title: "Relationship warnings", confirmText: "Change relationship" })) return false;
         const oldOwner = graph.owners.get(endpointKey2(relationship.source_type, relationship.source_id));
         const newOwner = graph.owners.get(endpointKey2(candidate.source_type, candidate.source_id));
         if (!oldOwner || !newOwner) {
@@ -7842,7 +7915,7 @@ Warning: ${linked.length} stored relationship${linked.length === 1 ? "" : "s"} r
 ${folderPath}
 
 The folder will be moved to trash.` : "Delete this project? This moves the file to trash.") + relationshipWarning;
-          if (!deleteTarget || !confirm(message)) return;
+          if (!deleteTarget || !await this._confirm(message, { title: "Delete project", confirmText: "Delete", danger: true })) return;
           try {
             this.detailFile = null;
             this.detailEntityKey = null;
@@ -9094,9 +9167,9 @@ The folder will be moved to trash.` : "Delete this project? This moves the file 
       async _convertProjectToFolder(file) {
         if (!file || isFolderProjectFile(file)) return;
         const projectName = projectNameFromPath(this.app, file.path) || file.basename;
-        if (!confirm(`Convert "${projectName}" into a folder-backed project?
+        if (!await this._confirm(`Convert "${projectName}" into a folder-backed project?
 
-This will move the current project note to Overview.md and split Milestones, Tasks, and Notes into separate files.`)) return;
+This will move the current project note to Overview.md and split Milestones, Tasks, and Notes into separate files.`, { title: "Convert project", confirmText: "Convert" })) return;
         try {
           const content = await this.app.vault.read(file);
           const sections = parseH2Sections(content);
@@ -9269,9 +9342,9 @@ This will move the current project note to Overview.md and split Milestones, Tas
         await this._renderPreservingScroll();
       }
       async _removePortfolio(scope, name, projects) {
-        if (!confirm(`Remove portfolio "${name}"?
+        if (!await this._confirm(`Remove portfolio "${name}"?
 
-Its projects will become independent. No project files will be deleted.`)) return;
+Its projects will become independent. No project files will be deleted.`, { title: "Remove portfolio", confirmText: "Remove", danger: true })) return;
         for (const project of projects) {
           await this._writeProjectFrontmatter(project.file, { portfolio: null, parent_project: null });
         }
@@ -10731,9 +10804,9 @@ Its projects will become independent. No project files will be deleted.`)) retur
           }
           remove.addEventListener("click", async (event) => {
             event.stopPropagation();
-            if (!confirm(`Remove map group "${group.name}"?
+            if (!await this._confirm(`Remove map group "${group.name}"?
 
-Projects will remain on the map.`)) return;
+Projects will remain on the map.`, { title: "Remove map group", confirmText: "Remove", danger: true })) return;
             groups.splice(groups.indexOf(group), 1);
             await persistMapLayout();
             await this._renderPreservingScroll();
@@ -11914,8 +11987,8 @@ Projects will remain on the map.`)) return;
         });
         const actions = editor.createDiv({ cls: "cad-home3-sidebar-actions" });
         const reset = actions.createEl("button", { cls: "cad-btn", text: "Reset" });
-        reset.addEventListener("click", () => {
-          if (!confirm("Reset the Home dashboard to the default tile layout?")) return;
+        reset.addEventListener("click", async () => {
+          if (!await this._confirm("Reset the Home dashboard to the default tile layout?", { title: "Reset dashboard", confirmText: "Reset", danger: true })) return;
           this.home3DraftLayout = this._home3DefaultLayout();
           void this._renderPreservingScroll();
         });
@@ -13840,8 +13913,8 @@ ${tags}`);
           if (r.text) await this._propagateTaskComplete(r.text, true, { kind: "reminder", id: r.id });
         });
         doneBtn.classList.add("primary");
-        const delBtn = mk("", "Delete", () => {
-          if (confirm("Delete this reminder?")) this.plugin.deleteReminder(r.id);
+        const delBtn = mk("", "Delete", async () => {
+          if (await this._confirm("Delete this reminder?", { title: "Delete reminder", confirmText: "Delete", danger: true })) this.plugin.deleteReminder(r.id);
         });
         delBtn.classList.add("cad-btn-danger");
       }
@@ -15000,9 +15073,9 @@ Saved to ${file.path}`, 4e3);
         const taskLine = parsed.tasks[idx] || "";
         const taskText = taskLine.replace(/^\s*-\s\[(x|X| )\]\s/, "").trim();
         if (!taskText) return;
-        if (!confirm(`Delete this task from today's note?
+        if (!await this._confirm(`Delete this task from today's note?
 
-${taskText}`)) return;
+${taskText}`, { title: "Delete task", confirmText: "Delete", danger: true })) return;
         const newTasks = parsed.tasks.filter((_, taskIndex) => taskIndex !== idx).filter((line) => line.replace(/^\s*-\s\[(x|X| )\]\s/, "").trim());
         const next = replaceSection(content, this.plugin.settings.tasksHeading, newTasks.join("\n"));
         await this.app.vault.modify(file, next);
@@ -15369,14 +15442,14 @@ ${values.success}`);
         const result = await this._buildRoadmapSnapshot();
         if (result.errors.length) {
           new obsidian.Notice(`Roadmap publish blocked: ${result.errors.length} validation error(s).`);
-          alert(`Roadmap publish blocked:
+          await this._alert(`Roadmap publish blocked:
 
-${result.errors.join("\n")}`);
+${result.errors.join("\n")}`, { title: "Roadmap publish blocked" });
           return false;
         }
         const summary = [`Publish ${result.snapshot.destinations.length} Destination(s) to Roadmap?`, "", ...result.warnings.slice(0, 12).map((warning) => `Warning: ${warning}`)];
         if (result.warnings.length > 12) summary.push(`...and ${result.warnings.length - 12} more warnings.`);
-        if (!confirm(summary.join("\n"))) return false;
+        if (!await this._confirm(summary.join("\n"), { title: "Publish Roadmap", confirmText: "Publish" })) return false;
         const path2 = this.plugin.settings.roadmapSnapshotPath || "Roadmap Alpha/data/company-roadmap.json";
         const folder = path2.split("/").slice(0, -1).join("/");
         if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
@@ -15579,7 +15652,7 @@ ${result.errors.join("\n")}`);
         const records = await this._roadmapRecords();
         const activeCount = records.filter((r) => r.file.path !== record.file.path && ["active", "ongoing"].includes(r.status)).length;
         const limit = Number(this.plugin.settings.roadmapActiveLimit) || 3;
-        if (["active", "ongoing"].includes(status) && activeCount >= limit && !confirm(`This creates ${activeCount + 1} active initiatives, above the limit of ${limit}. Continue deliberately?`)) return false;
+        if (["active", "ongoing"].includes(status) && activeCount >= limit && !await this._confirm(`This creates ${activeCount + 1} active initiatives, above the limit of ${limit}. Continue deliberately?`, { title: "Active initiative limit", confirmText: "Continue" })) return false;
         await this._writeProjectFrontmatter(record.file, { status });
         return true;
       }
@@ -18011,7 +18084,7 @@ ${body}
         console.info(message);
       }
       async migrateLegacySchedulesToEvents() {
-        if (!confirm("Convert all legacy Cadence schedule fields to Work block Events?\n\nAvailable and Due values will not be changed.")) return;
+        if (!await this._confirm("Convert all legacy Cadence schedule fields to Work block Events?\n\nAvailable and Due values will not be changed.", { title: "Convert legacy schedules", confirmText: "Convert" })) return;
         let migrated = 0;
         const createFrom = async (source, link = {}) => {
           const start = validCalendarDate(source.scheduledStart);
