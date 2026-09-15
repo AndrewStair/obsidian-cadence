@@ -13,39 +13,39 @@ Cadence is a local-first planning and project-management workspace for Obsidian.
 
 ## Contents
 
-1. [1.0 Start Here](#10-start-here)
-2. [2.0 Core Concepts](#20-core-concepts)
-3. [3.0 Navigation and Work Scopes](#30-navigation-and-work-scopes)
-4. [4.0 Capture, Inbox, and Today](#40-capture-inbox-and-today)
-5. [5.0 Projects, Milestones, and Tasks](#50-projects-milestones-and-tasks)
-6. [6.0 Portfolios and Parent-Child Projects](#60-portfolios-and-parent-child-projects)
-7. [7.0 Node Map and Relationships](#70-node-map-and-relationships)
-8. [8.0 Calendar and Scheduling](#80-calendar-and-scheduling)
-9. [9.0 Strategy, Initiatives, Timeline, and Reviews](#90-strategy-initiatives-timeline-and-reviews)
-10. [10.0 Settings and Customization](#100-settings-and-customization)
-11. [11.0 Markdown Data and Maintenance](#110-markdown-data-and-maintenance)
-12. [12.0 Practical Workflows](#120-practical-workflows)
-13. [13.0 Troubleshooting](#130-troubleshooting)
+- [1.0 Start Here](#10-start-here)
+- [2.0 Core Concepts](#20-core-concepts)
+- [3.0 Navigation and Work Scopes](#30-navigation-and-work-scopes)
+- [4.0 Capture, Inbox, and Today](#40-capture-inbox-and-today)
+- [5.0 Projects, Milestones, and Tasks](#50-projects-milestones-and-tasks)
+- [6.0 Portfolios and Parent-Child Projects](#60-portfolios-and-parent-child-projects)
+- [7.0 Node Map and Relationships](#70-node-map-and-relationships)
+- [8.0 Calendar and Scheduling](#80-calendar-and-scheduling)
+- [9.0 Strategy, Initiatives, Timeline, and Reviews](#90-strategy-initiatives-timeline-and-reviews)
+- [10.0 Settings and Customization](#100-settings-and-customization)
+- [11.0 Markdown Data and Maintenance](#110-markdown-data-and-maintenance)
+- [12.0 Practical Workflows](#120-practical-workflows)
+- [13.0 Troubleshooting](#130-troubleshooting)
 
 ## 1.0 Start Here
 
 ### 1.1 Install
 
-1. Download `main.js`, `manifest.json`, `styles.css`, and the `assets` folder from the Cadence release.
-2. Create `<vault>/.obsidian/plugins/cadence-planner/`.
-3. Place those files and the `assets` folder in that plugin folder.
-4. In Obsidian, open **Settings -> Community plugins**, reload plugins, and enable **Cadence**.
+- Download `main.js`, `manifest.json`, `styles.css`, and the `assets` folder from the Cadence release.
+- Create `<vault>/.obsidian/plugins/cadence-planner/`.
+- Place those files and the `assets` folder in that plugin folder.
+- In Obsidian, open **Settings -> Community plugins**, reload plugins, and enable **Cadence**.
 
 Cadence is desktop-only. After enabling it, open Cadence from its ribbon action, command palette command, or configured startup behavior.
 
 ### 1.2 First-use checklist
 
-1. Open **Cadence -> Settings**.
-2. Confirm your daily-note folder and the headings Cadence should use for tasks and journal content.
-3. Set the first day of the month view and your operating hours.
-4. Decide whether to hide closed days in Week and Month calendar views.
-5. Create one project with a desired outcome, one milestone, and a small next task.
-6. Use Inbox for the next thing you need to remember rather than creating an unstructured note.
+- Open **Cadence -> Settings**.
+- Confirm your daily-note folder and the headings Cadence should use for tasks and journal content.
+- Set the first day of the month view and your operating hours.
+- Decide whether to hide closed days in Week and Month calendar views.
+- Create one project with a desired outcome, one milestone, and a small next task.
+- Use Inbox for the next thing you need to remember rather than creating an unstructured note.
 
 ## 2.0 Core Concepts
 
@@ -89,10 +89,10 @@ The sidebar can be collapsed. When **Expand collapsed sidebar on hover** is enab
 
 Think of the navigation as a path, not a list of unrelated pages:
 
-1. **Plan** is where incoming work and today’s decisions live.
-2. **PM** is where projects gain structure and relationships.
-3. **Business Roadmap** is where project work is connected to longer-term direction.
-4. **Settings** is where Cadence adapts to your schedule, vault, and preferred level of detail.
+- **Plan** is where incoming work and today’s decisions live.
+- **PM** is where projects gain structure and relationships.
+- **Business Roadmap** is where project work is connected to longer-term direction.
+- **Settings** is where Cadence adapts to your schedule, vault, and preferred level of detail.
 
 ## 4.0 Capture, Inbox, and Today
 
@@ -124,11 +124,11 @@ Today combines actionable daily-note tasks, reminders, due work, and scheduled i
 
 Open **PM -> Projects** and choose **New Project**. Begin with:
 
-1. A concise project name.
-2. A **Brief** explaining the context or problem.
-3. A **Desired Outcome** that makes completion observable.
-4. A status and priority.
-5. A first milestone and its next task.
+- A concise project name.
+- A **Brief** explaining the context or problem.
+- A **Desired Outcome** that makes completion observable.
+- A status and priority.
+- A first milestone and its next task.
 
 Cadence uses statuses to communicate intent:
 
@@ -193,11 +193,11 @@ Do not turn every relationship into containment. Two projects can be related, se
 
 ### 7.2 Create and edit connections
 
-1. Open Node Map and select the scopes you want to view.
-2. Drag project cards to arrange the map. Use middle-click drag to pan and left-drag empty space to select multiple items.
-3. Drag from a project edge handle to another project to create a connection.
-4. Select the new or existing arrow to choose its relationship type.
-5. Select an arrow and use Delete/Backspace or the delete control to remove it.
+- Open Node Map and select the scopes you want to view.
+- Drag project cards to arrange the map. Use middle-click drag to pan and left-drag empty space to select multiple items.
+- Drag from a project edge handle to another project to create a connection.
+- Select the new or existing arrow to choose its relationship type.
+- Select an arrow and use Delete/Backspace or the delete control to remove it.
 
 ### 7.3 Groups and layout tools
 
@@ -281,37 +281,37 @@ Cadence writes its data into your vault. You can inspect and edit the resulting 
 
 ### 11.2 Safe manual-editing practices
 
-1. Keep frontmatter keys intact when editing a Cadence-managed note.
-2. Make small changes and reopen the Cadence view to confirm the result.
-3. Use normal Obsidian backlinks, links, and search freely.
-4. Back up your vault before bulk edits or migrations.
-5. Do not commit `data.json`, credentials, or personal vault content when contributing to the plugin repository.
+- Keep frontmatter keys intact when editing a Cadence-managed note.
+- Make small changes and reopen the Cadence view to confirm the result.
+- Use normal Obsidian backlinks, links, and search freely.
+- Back up your vault before bulk edits or migrations.
+- Do not commit `data.json`, credentials, or personal vault content when contributing to the plugin repository.
 
 ## 12.0 Practical Workflows
 
 ### 12.1 Weekly planning
 
-1. Empty Inbox into reminders, projects, or scheduled blocks.
-2. Review Today for due work and open tasks.
-3. Check the Calendar for actual capacity.
-4. Open Node Map and look for hard dependencies, blocked items, and tentative next steps.
-5. Choose a small set of active milestones, not every project.
+- Empty Inbox into reminders, projects, or scheduled blocks.
+- Review Today for due work and open tasks.
+- Check the Calendar for actual capacity.
+- Open Node Map and look for hard dependencies, blocked items, and tentative next steps.
+- Choose a small set of active milestones, not every project.
 
 ### 12.2 Starting a new initiative
 
-1. Create the project and state its desired outcome.
-2. Add the first milestone and the next concrete task.
-3. Put it in the appropriate portfolio and work scope.
-4. Add a relationship only when it changes how you will sequence or prioritize the work.
-5. Create a calendar block if the work needs protected time.
+- Create the project and state its desired outcome.
+- Add the first milestone and the next concrete task.
+- Put it in the appropriate portfolio and work scope.
+- Add a relationship only when it changes how you will sequence or prioritize the work.
+- Create a calendar block if the work needs protected time.
 
 ### 12.3 Finishing a project
 
-1. Complete remaining tasks and milestone outcomes.
-2. Record the result and any decisions in project notes.
-3. Mark the project Done or Cancelled.
-4. Update downstream dependencies or tentative-next relationships.
-5. Use a Review to capture what should change next time.
+- Complete remaining tasks and milestone outcomes.
+- Record the result and any decisions in project notes.
+- Mark the project Done or Cancelled.
+- Update downstream dependencies or tentative-next relationships.
+- Use a Review to capture what should change next time.
 
 ## 13.0 Troubleshooting
 
