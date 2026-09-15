@@ -6179,9 +6179,10 @@ button.cad-portfolio-scope-picker:focus-visible {
   border-radius:5px;
   background:transparent;
 }
-.cadence-planner .cad-pl-nav > .cad-pl-btn:not(.primary) {
+.cadence-planner .cad-pl-nav > .cad-pl-btn {
   border-color:var(--background-modifier-border);
-  background:var(--background-secondary);
+  background:var(--background-primary);
+  color:var(--text-normal);
 }
 .cadence-planner .cad-pl-btn.primary {
   border-color:var(--background-modifier-border);
