@@ -17160,21 +17160,34 @@ ${rows}
               if (item.isDeadline && item.date.getHours() === 0 && item.date.getMinutes() === 0) return false;
               return item.startDate < addDays(startOfDay(day), 1) && item.date > startOfDay(day);
             }).sort((a, b) => a.startDate - b.startDate || a.date - b.date);
-            const lanes = [];
-            timed.forEach((item) => {
+            const segments = timed.map((item) => {
               const segmentStart = item.startDate < startOfDay(day) ? startOfDay(day) : item.startDate;
               const effectiveEnd = item.isDeadline ? new Date(item.date.getTime() + 15 * 60 * 1e3) : item.date;
               const segmentEnd = effectiveEnd > addDays(startOfDay(day), 1) ? addDays(startOfDay(day), 1) : effectiveEnd;
-              const lane = lanes.findIndex((end) => end <= segmentStart);
-              const laneIndex = lane < 0 ? lanes.length : lane;
-              lanes[laneIndex] = segmentEnd;
-              item._calendarLane = laneIndex;
+              return { item, segmentStart, segmentEnd, laneIndex: 0, laneCount: 1 };
             });
-            const laneCount = Math.max(1, lanes.length);
-            timed.forEach((item) => {
-              const segmentStart = item.startDate < startOfDay(day) ? startOfDay(day) : item.startDate;
-              const effectiveEnd = item.isDeadline ? new Date(item.date.getTime() + 15 * 60 * 1e3) : item.date;
-              const segmentEnd = effectiveEnd > addDays(startOfDay(day), 1) ? addDays(startOfDay(day), 1) : effectiveEnd;
+            const clusters = [];
+            segments.forEach((segment) => {
+              const current = clusters[clusters.length - 1];
+              if (!current || segment.segmentStart >= current.end) {
+                clusters.push({ end: segment.segmentEnd, segments: [segment] });
+                return;
+              }
+              current.segments.push(segment);
+              if (segment.segmentEnd > current.end) current.end = segment.segmentEnd;
+            });
+            clusters.forEach((cluster) => {
+              const lanes = [];
+              cluster.segments.forEach((segment) => {
+                const lane = lanes.findIndex((end) => end <= segment.segmentStart);
+                const laneIndex = lane < 0 ? lanes.length : lane;
+                lanes[laneIndex] = segment.segmentEnd;
+                segment.laneIndex = laneIndex;
+              });
+              const laneCount = Math.max(1, lanes.length);
+              cluster.segments.forEach((segment) => segment.laneCount = laneCount);
+            });
+            segments.forEach(({ item, segmentStart, segmentEnd, laneIndex, laneCount }) => {
               const startMinute = Math.max(0, (segmentStart.getHours() - startHour) * 60 + segmentStart.getMinutes());
               const endMinute = Math.min(gridMinutes, (segmentEnd.getHours() - startHour) * 60 + segmentEnd.getMinutes());
               if (endMinute <= 0 || startMinute >= gridMinutes) return;
@@ -17182,7 +17195,7 @@ ${rows}
               if (item.plane) block.dataset.plane = String(item.plane).toLowerCase();
               block.style.top = `${startMinute * pixelsPerMinute}px`;
               block.style.height = `${Math.max(14, (endMinute - startMinute) * pixelsPerMinute - 3)}px`;
-              block.style.left = `calc(${item._calendarLane / laneCount * 100}% + 3px)`;
+              block.style.left = `calc(${laneIndex / laneCount * 100}% + 3px)`;
               block.style.width = `calc(${100 / laneCount}% - 6px)`;
               block.draggable = !item.isDeadline;
               block.addEventListener("dragstart", (event) => {
