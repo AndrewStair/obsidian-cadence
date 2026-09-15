@@ -6158,6 +6158,14 @@ button.cad-portfolio-scope-picker:focus-visible {
   align-items:center;
   border-bottom:1px solid var(--background-modifier-border);
 }
+.cadence-planner .cad-pl-header {
+  position:sticky;
+  top:0;
+  z-index:20;
+  padding-top:12px;
+  background:var(--background-primary);
+  box-shadow:0 8px 12px color-mix(in srgb, var(--background-primary) 84%, transparent);
+}
 .cadence-planner .cad-pl-title { font-size:22px; font-weight:600; }
 .cadence-planner .cad-pl-title-wrap .cad-eyebrow { display:none; }
 .cadence-planner .cad-pl-nav { justify-content:flex-end; }
