@@ -6,6 +6,11 @@
 
 Cadence is a local-first planning and project-management workspace for Obsidian. It organizes work in Markdown files in your vault, then presents that work through focused views for capture, project delivery, scheduling, and strategy. Cadence does not require a cloud account. Your vault remains the source of truth.
 
+> [!tip] Start with one real piece of work
+> Do not try to configure every screen on day one. Capture one commitment, turn it into a small project, decide what comes next, and place a focused block on the Calendar. That single loop teaches the shape of Cadence.
+
+![Cadence workflow from capture through scheduled work](assets/cadence-workflow.png)
+
 ## Contents
 
 1. [Start Here](#start-here)
@@ -79,6 +84,15 @@ Cadence's main sidebar is divided into these areas:
 The work-scope buttons at the top of the sidebar act as filters. Click to include or exclude a scope. In views with a dedicated scope filter, such as Node Map, changes stay synchronized with the sidebar selection.
 
 The sidebar can be collapsed. When **Expand collapsed sidebar on hover** is enabled in Settings, an icon-only or hidden sidebar temporarily expands under the pointer. Sidebar items provide immediate custom hover help.
+
+### A quick way to orient yourself
+
+Think of the navigation as a path, not a list of unrelated pages:
+
+1. **Plan** is where incoming work and today’s decisions live.
+2. **PM** is where projects gain structure and relationships.
+3. **Business Roadmap** is where project work is connected to longer-term direction.
+4. **Settings** is where Cadence adapts to your schedule, vault, and preferred level of detail.
 
 ## Capture, Inbox, and Today
 
@@ -175,6 +189,8 @@ Do not turn every relationship into containment. Two projects can be related, se
 | **Related** | The items share context but do not imply sequence or blocking. |
 | **Containment** | The target is part of, or a child of, the parent project. |
 
+![Cadence relationship types and their intended meanings](assets/cadence-relationship-types.png)
+
 ### Create and edit connections
 
 1. Open Node Map and select the scopes you want to view.
@@ -213,6 +229,8 @@ When events overlap, Cadence displays those overlapping events side by side. Eve
 | **Agenda** | Reviewing upcoming work in chronological order. |
 
 The calendar header remains visible while calendar content scrolls. When horizontal space is constrained, totals move below the date and controls retain a stable position.
+
+![Choose a Calendar view based on the planning decision in front of you](assets/cadence-calendar-views.png)
 
 ### Operating hours and closed days
 
