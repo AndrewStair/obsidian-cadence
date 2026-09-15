@@ -6190,20 +6190,17 @@ button.cad-portfolio-scope-picker:focus-visible {
   .cad-settings-roadmap-hours { grid-template-columns:1fr; }
 }
 .cad-settings-operating-hours {
-  display:grid;
-  grid-template-columns:minmax(220px,.72fr) minmax(0,1.65fr);
-  gap:18px;
-  align-items:start;
+  display:block;
   margin:8px 0 18px;
   padding:14px 20px;
   border-top:1px solid var(--background-modifier-border);
   border-bottom:1px solid var(--background-modifier-border);
 }
-.cad-settings-operating-hours-info { min-width:0; }
+.cad-settings-operating-hours-info { min-width:0; margin-bottom:12px; }
 .cad-settings-operating-hours-info .setting-item-name { margin-bottom:4px; }
 .cad-settings-operating-hours-grid {
   display:grid;
-  grid-template-columns:repeat(7,minmax(88px,1fr));
+  grid-template-columns:repeat(7,minmax(0,1fr));
   gap:8px;
 }
 .cad-settings-operating-day {
@@ -6228,7 +6225,6 @@ button.cad-portfolio-scope-picker:focus-visible {
 .cad-settings-operating-day-times { display:grid; gap:5px; }
 .cad-settings-operating-day-times input { width:100%; min-width:0; font-size:11px; }
 @media(max-width:900px) {
-  .cad-settings-operating-hours { grid-template-columns:1fr; }
   .cad-settings-operating-hours-grid { grid-template-columns:repeat(4,minmax(88px,1fr)); }
 }
 @media(max-width:560px) {

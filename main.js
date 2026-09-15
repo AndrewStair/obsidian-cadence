@@ -16501,6 +16501,7 @@ ${rows}
           }
         });
         const settings = this.plugin.settings;
+        const operatingHours = this._operatingHours();
         const view = this.calendarView || "week";
         root.addClass(`cadence-planner-${view}`);
         const orientation = settings.calendarOrientation === "vertical" ? "vertical" : "horizontal";
@@ -17544,7 +17545,7 @@ ${rows}
         this.addCommand({
           id: "quick-capture",
           name: "Quick capture (with optional reminder)",
-          hotkeys: [{ modifiers: ["Mod", "Shift"], key: "i" }],
+          hotkeys: [{ modifiers: ["Mod"], key: "d" }],
           callback: () => this.openQuickCapture()
         });
         this.addCommand({
