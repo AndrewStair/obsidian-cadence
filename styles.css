@@ -4571,6 +4571,18 @@ select.cad-form-input { appearance: auto; padding-right: 28px; }
 }
 .cad-calendar-repeat-icon { width: 13px; height: 13px; margin-left: auto; color: var(--text-muted); flex: 0 0 13px; }
 .cad-calendar-repeat-icon svg { width: 13px; height: 13px; }
+.cad-calendar-month .cad-calendar-event {
+  align-items:flex-start;
+  flex-wrap:wrap;
+}
+.cad-calendar-month .cad-calendar-event-title {
+  flex:1 1 72px;
+  min-width:72px;
+}
+.cad-calendar-month .cad-calendar-event-time {
+  flex:1 0 100%;
+  margin-left:18px;
+}
 .cad-calendar-event-icon.is-due-icon { color: #ff657a; }
 .cad-calendar-event.is-work-window {
   background: color-mix(in srgb, var(--background-secondary) 60%, transparent);
