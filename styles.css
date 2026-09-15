@@ -6153,18 +6153,11 @@ button.cad-portfolio-scope-picker:focus-visible {
   container-name:cadence-planner;
 }
 .cadence-planner .cad-pl-header {
-  margin:0 0 12px;
+  margin:0;
   padding:0 0 12px;
   align-items:center;
   border-bottom:1px solid var(--background-modifier-border);
-}
-.cadence-planner .cad-pl-header {
-  position:sticky;
-  top:0;
-  z-index:20;
-  padding-top:12px;
-  background:var(--background-primary);
-  box-shadow:0 8px 12px color-mix(in srgb, var(--background-primary) 84%, transparent);
+  flex:0 0 auto;
 }
 .cadence-planner .cad-pl-title { font-size:22px; font-weight:600; }
 .cadence-planner .cad-pl-title-wrap .cad-eyebrow { display:none; }
@@ -6310,9 +6303,20 @@ button.cad-portfolio-scope-picker:focus-visible {
 .cad-calendar-filter-bar { display:none; margin:0 0 12px; }
 .cad-calendar-filter-bar.is-open { display:flex; }
 .cadence-planner.cadence-planner-month {
-  overflow-y:auto;
+  overflow:hidden;
 }
-.cadence-planner.cadence-planner-time-grid > .cad-calendar {
+.cadence-planner .cad-pl-scroll-area {
+  flex:1 1 auto;
+  min-height:0;
+  overflow:auto;
+  overscroll-behavior:contain;
+}
+.cadence-planner.cadence-planner-time-grid > .cad-pl-scroll-area {
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+}
+.cadence-planner.cadence-planner-time-grid > .cad-pl-scroll-area > .cad-calendar {
   flex:1 1 auto;
   min-height:0;
   display:flex;

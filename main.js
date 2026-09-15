@@ -16681,11 +16681,12 @@ ${rows}
           new CadenceEventEditModal(this.app, this.plugin, { values: { eventType: "appointment", start: start.toISOString(), end: new Date(start.getTime() + 60 * 60 * 1e3).toISOString(), repeat: "none" }, onSaved: () => this._renderPreservingScroll() }).open();
         });
         mkBtn("Undo", "undo-2", () => void this._undoCalendarChange());
+        const calendarScrollArea = root.createDiv({ cls: "cad-pl-scroll-area" });
         const filterState = Object.assign(
           { preset: "schedule", type: "all", plane: "all", completion: "all" },
           settings.calendarFilters || {}
         );
-        const filterBar = root.createDiv({ cls: `cad-calendar-filter-bar${this.calendarFiltersOpen ? " is-open" : ""}` });
+        const filterBar = calendarScrollArea.createDiv({ cls: `cad-calendar-filter-bar${this.calendarFiltersOpen ? " is-open" : ""}` });
         const addFilter = (key, label, choices) => {
           const control = filterBar.createEl("label", { cls: "cad-calendar-filter" });
           control.createSpan({ text: label });
@@ -16779,7 +16780,7 @@ ${rows}
         mkStat("OPEN", totalOpen);
         mkStat("DONE", totalDone);
         mkStat("TOTAL", totalOpen + totalDone);
-        const calendar = root.createDiv({ cls: `cad-calendar cad-calendar-${view} cad-calendar-${orientation}${timeGrid || detailedTime ? " is-detailed-time" : ""}${hideClosedDays ? " cad-calendar-hide-closed-days" : ""}` });
+        const calendar = calendarScrollArea.createDiv({ cls: `cad-calendar cad-calendar-${view} cad-calendar-${orientation}${timeGrid || detailedTime ? " is-detailed-time" : ""}${hideClosedDays ? " cad-calendar-hide-closed-days" : ""}` });
         const calendarColumnCount = view === "month" ? hideClosedDays ? new Set(days.map((date) => date.getDay())).size : 7 : view === "week" ? days.length : 1;
         calendar.style.setProperty("--cad-calendar-days", String(Math.max(1, calendarColumnCount)));
         let compactRange = null;
