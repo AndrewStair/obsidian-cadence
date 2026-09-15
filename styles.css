@@ -6308,6 +6308,7 @@ button.cad-portfolio-scope-picker:focus-visible {
 .cadence-planner .cad-pl-scroll-area {
   flex:1 1 auto;
   min-height:0;
+  padding-top:12px;
   overflow:auto;
   overscroll-behavior:contain;
 }
